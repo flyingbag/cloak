@@ -221,17 +221,30 @@ Input: none
 Output: prints shell integration code to stdout
 Effects:
   1. Detect the current shell (bash or zsh) via SHELL env var
-  2. Emit a compatible shell function that:
-     a. Intercepts `claude account <subcommand>` → routes to cloak binary
-     b. Intercepts `claude -a <name> [args]` → routes to cloak launch
-     c. Delegates everything else to the original claude binary
-  3. The function must handle `switch` and `use` with eval to apply the export
+  2. Emit two shell functions:
+     a. cloak() — intercepts `cloak switch` to eval the export in the current shell
+     b. claude() — intercepts `claude account` and `claude -a` for syntax sugar
+  3. Export CLOAK_SHELL_INTEGRATION=1 to signal that integration is active
 ```
 
 The emitted shell code:
 
 ```bash
 export CLOAK_SHELL_INTEGRATION=1
+
+cloak() {
+  if [ "$1" = "switch" ] || [ "$1" = "use" ]; then
+    shift
+    local output
+    output=$(command cloak switch --print-env "$@")
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
+      eval "$output"
+    fi
+  else
+    command cloak "$@"
+  fi
+}
 
 claude() {
   if [ "$1" = "account" ]; then
@@ -263,7 +276,10 @@ claude() {
 }
 ```
 
-**Note:** the `-a` branch evals the switch (setting `CLAUDE_CONFIG_DIR` in the parent shell), then calls `command claude`. This ensures `whoami` reflects the correct account after Claude exits.
+**Notes:**
+- `cloak()` intercepts only `switch`/`use` — all other cloak commands pass through to the binary
+- `claude()` intercepts `account` subcommands and `-a` — everything else passes through to the original claude
+- Both functions use `eval` to set `CLAUDE_CONFIG_DIR` in the parent shell
 
 #### `commands/create.js`
 
@@ -540,10 +556,6 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 | R-05 | Invalid destination name | — | Exit 1, source preserved |
 | R-06 | Rename preserves content | Account with multiple files | All files present in new directory |
 
-#### `tests/launch.test.js` — Launch command (switch + exec)
-
-| ID | Scenario | Precondition | Expected |
-|----|----------|-------------|----------|
 #### `tests/tip.test.js` — First-run shell integration tip
 
 | ID | Scenario | Precondition | Expected |
@@ -559,14 +571,14 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 
 | ID | Scenario | Precondition | Expected |
 |----|----------|-------------|----------|
-| I-01 | Output contains shell function `claude()` | — | Stdout contains `claude()` |
-| I-02 | Function intercepts `account switch` | — | Stdout contains logic for `account` + `switch` |
-| I-03 | `-a` evals switch then calls claude | — | Stdout contains `cloak switch --print-env` and `command claude` in the `-a` branch |
-| I-04 | Function delegates other commands | — | Stdout contains `command claude "$@"` |
-| I-05 | Detects current shell | `SHELL` env var set | Output is valid for the detected shell |
-| I-06 | Sets CLOAK_SHELL_INTEGRATION env var | — | Stdout contains `export CLOAK_SHELL_INTEGRATION=1` |
-| I-07 | `-a` sets env in parent shell | — | The `-a` branch contains `eval` before `command claude` |
-| I-08 | `account switch` does NOT call `command claude` | — | The `switch`/`use` branch does not contain `command claude` after eval |
+| I-01 | Output contains `cloak()` shell function | — | Stdout contains `cloak()` |
+| I-02 | Output contains `claude()` shell function | — | Stdout contains `claude()` |
+| I-03 | `cloak()` intercepts switch/use with eval | — | `cloak()` function contains `switch`, `use`, `eval`, `--print-env` |
+| I-04 | `cloak()` delegates other commands to binary | — | `cloak()` function contains `command cloak "$@"` |
+| I-05 | `claude()` `-a` evals switch then calls claude | — | `-a` branch contains `eval` before `command claude` |
+| I-06 | `claude()` delegates other commands | — | Contains `command claude "$@"` |
+| I-07 | Sets CLOAK_SHELL_INTEGRATION env var | — | Stdout contains `export CLOAK_SHELL_INTEGRATION=1` |
+| I-08 | `claude account switch` does NOT call `command claude` | — | The `account switch` branch does not contain `command claude` after eval |
 
 ---
 
@@ -575,7 +587,7 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 ```json
 {
   "name": "@synth1s/cloak",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "description": "Cloak your Claude. Switch identities in seconds.",
   "type": "module",
   "bin": {

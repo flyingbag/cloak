@@ -45,12 +45,12 @@ Cloak uses Claude Code's official `CLAUDE_CONFIG_DIR` env var to isolate account
 - No file swapping — each account is a complete, independent config
 - Active account is per-shell (determined by env var), not global
 
-Shell integration (`eval "$(cloak init)"`) extends the `claude` command:
-- `claude account <subcommand>` — routed to cloak binary
-- `claude -a <name>` — switch + launch in one command
-- Everything else passes through to original claude
+Shell integration (`eval "$(cloak init)"`) emits two shell functions:
+- `cloak()` — intercepts `cloak switch` to eval export in the current shell
+- `claude()` — extends `claude` with `account` subcommands and `-a` flag
+- Commands that don't modify env (create, list, whoami, delete, rename) pass through to binary
 
-On first run without shell integration, a non-blocking tip is shown suggesting setup.
+On first `cloak switch` without shell integration, user is prompted to set it up.
 
 ## Available commands
 ```

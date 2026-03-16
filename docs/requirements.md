@@ -56,40 +56,49 @@ Each account is an isolated directory — a cloak that Claude can wear:
 
 ---
 
-## 3. Two modes of operation
+## 3. Shell integration
 
-Cloak works in two modes. Both are fully functional — shell integration is optional syntax sugar.
+Cloak requires shell integration for account switching. This is because a child process (the `cloak` binary) cannot modify the parent shell's environment variables — an OS-level constraint. Shell functions run inside the shell itself, so they can.
 
-### 3.1 Direct mode (no setup required)
+### 3.1 What shell integration provides
 
-After `npm install -g @synth1s/cloak`, all commands are available immediately via the `cloak` binary:
+After `eval "$(cloak init)"`, the shell gets two functions:
 
+**`cloak()` function** — intercepts `cloak switch` to set `CLAUDE_CONFIG_DIR` in the current shell:
 ```bash
-cloak create work          # save current session
-cloak launch work          # switch + launch claude
-cloak list                 # see all accounts
-cloak whoami               # which account is active
+cloak switch work          # switches account ✔
+cloak create work          # delegated to binary (no interception needed)
+cloak list                 # delegated to binary
+cloak whoami               # delegated to binary
 ```
 
-This mode works on any shell, any OS, with zero configuration.
-
-### 3.2 Shell integration mode (optional)
-
-For users who prefer the `claude account` and `claude -a` syntax:
-
+**`claude()` function** — extends the `claude` command:
 ```bash
-# Add to .bashrc or .zshrc (once):
-eval "$(cloak init)"
+claude -a work             # switch + launch claude
+claude account switch work # same as cloak switch work
+claude account list        # same as cloak list
+claude                     # passes through to original claude
 ```
 
-The `cloak init` command emits a shell function that:
-1. Adds the `claude account` subcommand — routed to the `cloak` binary
-2. Adds the `claude -a <name>` flag — shortcut for `cloak launch`
-3. Keeps everything else in `claude` working normally
+All commands that don't modify environment variables (`create`, `list`, `whoami`, `delete`, `rename`) work without shell integration via the `cloak` binary directly.
 
-### 3.3 First-run shell integration tip
+### 3.2 Automatic setup
 
-When the user runs any `cloak` command for the first time and shell integration is not detected, the system displays a one-time, non-blocking tip:
+When the user runs `cloak switch` for the first time without shell integration, the system prompts:
+
+```
+⚠ Shell integration is required to switch accounts.
+
+? How would you like to proceed?
+❯ Set it up now (recommended)
+  Show manual instructions
+```
+
+Automatic setup appends `eval "$(cloak init)"` to the user's rc file (`.bashrc` or `.zshrc`).
+
+### 3.3 First-run tip
+
+When any other `cloak` command runs without shell integration, a non-blocking tip is shown:
 
 ```
 💡 Tip: Run this once to enable "claude -a" and "claude account":
@@ -165,16 +174,19 @@ When the user runs any `cloak` command for the first time and shell integration 
 **Actor:** User with at least one saved account.
 
 **Main flow (with shell integration):**
-1. User runs `claude account switch <name>` (or `claude account use <name>`, or `cloak switch <name>`)
-2. System validates the name
-3. System checks that the account exists
-4. Shell function runs `export CLAUDE_CONFIG_DIR=~/.cloak/profiles/<name>`
+1. User runs `cloak switch <name>` (or `claude account switch <name>`, or `claude account use <name>`)
+2. Shell function `cloak()` intercepts the command
+3. System validates the name and checks the account exists
+4. Shell function evals `export CLAUDE_CONFIG_DIR=~/.cloak/profiles/<name>`
 5. System displays confirmation
+6. Next `claude` invocation uses the new account
 
 **Alternative flow — shortcut with launch:**
 1. User runs `claude -a <name>` (optionally with extra arguments)
-2. System validates the name and checks the account exists
-3. System sets `CLAUDE_CONFIG_DIR` and executes `claude` with the extra arguments
+2. Shell function `claude()` intercepts the command
+3. System validates the name and checks the account exists
+4. Shell function evals the switch, then calls `command claude` with extra arguments
+5. Claude Code opens with the selected account
 
 **Alternative flow — already wearing this cloak:**
 1. System detects that `CLAUDE_CONFIG_DIR` already points to the requested account
@@ -187,14 +199,14 @@ When the user runs any `cloak` command for the first time and shell integration 
 **Alternative flow — no shell integration (first time):**
 1. System detects shell integration is not active (`CLOAK_SHELL_INTEGRATION !== '1'`)
 2. System presents two options:
-   - **Option 1: Automatic setup** — adds `eval "$(cloak init)"` to the user's shell rc file and reloads
+   - **Option 1: Automatic setup** — adds `eval "$(cloak init)"` to the user's shell rc file
    - **Option 2: Manual instructions** — prints the commands for the user to run manually
 3. If user chooses automatic setup:
    a. System detects the shell (bash → `~/.bashrc`, zsh → `~/.zshrc`)
    b. System checks if the line already exists in the rc file (no duplicates)
    c. System appends `eval "$(cloak init)"` to the rc file
-   d. System sources the rc file in the current process (prints instructions to reload)
-   e. System executes the switch
+   d. System instructs user to reload shell (`source ~/.bashrc`)
+   e. After reload, `cloak switch` works normally
 4. If user chooses manual instructions:
    a. System prints the `eval "$(cloak init)"` setup command
    b. Switch is not executed (user must reload shell first)
@@ -203,7 +215,7 @@ When the user runs any `cloak` command for the first time and shell integration 
 - Switching does **not** modify any account files. It only changes the environment variable
 - Claude Code sessions already running are not affected by the switch
 - Each terminal maintains its own `CLAUDE_CONFIG_DIR` independently
-- `claude -a <name>` combines switch + launch in a single command
+- All three switch commands (`cloak switch`, `claude account switch`, `claude -a`) go through shell functions, ensuring `CLAUDE_CONFIG_DIR` is set in the parent shell
 - The shell integration setup prompt only appears when `CLOAK_SHELL_INTEGRATION` is not set
 - Automatic setup does not duplicate the init line if it already exists in the rc file
 - Automatic setup detects the correct rc file based on `SHELL` env var
