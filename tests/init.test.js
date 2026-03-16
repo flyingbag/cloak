@@ -19,9 +19,11 @@ describe('init', () => {
     assert.ok(output.includes('switch'))
   })
 
-  it('I-03: function routes -a to cloak launch', () => {
+  it('I-03: -a evals switch then calls claude', () => {
     const output = getInitScript()
-    assert.ok(output.includes('command cloak launch'))
+    // The -a branch must call cloak switch --print-env AND command claude
+    assert.ok(output.includes('cloak switch --print-env'))
+    assert.ok(output.includes('command claude'))
   })
 
   it('I-04: function delegates other commands', () => {
@@ -32,12 +34,22 @@ describe('init', () => {
   it('I-05: detects current shell', () => {
     process.env.SHELL = '/bin/zsh'
     const output = getInitScript()
-    // Should still produce valid shell code
     assert.ok(output.includes('claude()'))
   })
 
   it('I-06: sets CLOAK_SHELL_INTEGRATION env var', () => {
     const output = getInitScript()
     assert.ok(output.includes('export CLOAK_SHELL_INTEGRATION=1'))
+  })
+
+  it('I-07: -a sets env in parent shell via eval before command claude', () => {
+    const output = getInitScript()
+    // Find the -a branch and verify eval comes before command claude
+    const aIndex = output.indexOf('"-a"')
+    const evalIndex = output.indexOf('eval', aIndex)
+    const claudeIndex = output.indexOf('command claude', evalIndex)
+    assert.ok(aIndex > -1, '-a branch exists')
+    assert.ok(evalIndex > aIndex, 'eval appears after -a')
+    assert.ok(claudeIndex > evalIndex, 'command claude appears after eval')
   })
 })
