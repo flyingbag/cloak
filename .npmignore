@@ -1,0 +1,6 @@
+tests/
+docs/
+.claude/
+.git/
+.gitignore
+CLAUDE.md
