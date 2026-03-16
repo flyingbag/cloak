@@ -1,0 +1,46 @@
+{
+  "name": "@synth1s/ccp",
+  "version": "1.0.0",
+  "description": "CLI to manage multiple Claude Code account profiles",
+  "type": "module",
+  "bin": {
+    "ccp": "./src/cli.js"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "lint": "eslint src/",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "anthropic",
+    "profile",
+    "profiles",
+    "cli",
+    "switch"
+  ],
+  "author": "synth1s",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0",
+    "chalk": "^5.3.0",
+    "inquirer": "^10.1.0",
+    "ora": "^8.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "eslint": "^9.9.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/synth1s/ccp.git"
+  },
+  "homepage": "https://github.com/synth1s/ccp#readme",
+  "bugs": {
+    "url": "https://github.com/synth1s/ccp/issues"
+  }
+}
