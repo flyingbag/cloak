@@ -36,7 +36,8 @@
 │   │   └── init.js          # cloak init (shell integration)
 │   └── lib/
 │       ├── paths.js         # Path constants and directory helpers
-│       └── validate.js      # Account name validation
+│       ├── validate.js      # Account name validation
+│       └── tip.js           # First-run shell integration tip
 ├── tests/
 │   ├── validate.test.js
 │   ├── paths.test.js
@@ -47,7 +48,8 @@
 │   ├── delete.test.js
 │   ├── rename.test.js
 │   ├── launch.test.js
-│   └── init.test.js
+│   ├── init.test.js
+│   └── tip.test.js
 ├── docs/
 │   ├── requirements.md      # Requirements and use cases
 │   └── technical-spec.md    # This document
@@ -142,7 +144,28 @@ export function getActiveProfile()         // → string | null (extracts name f
 
 ---
 
-### 4.2 `src/lib/validate.js` — Name validation
+### 4.2 `src/lib/tip.js` — First-run shell integration tip
+
+Displays a one-time, non-blocking suggestion to set up shell integration.
+
+```js
+export function showTipIfNeeded()
+// Logic:
+//   1. If process.env.CLOAK_TIP_SHOWN === '1' → return (already shown this session)
+//   2. If !process.stdout.isTTY → return (piped output, not interactive)
+//   3. If process.env.CLOAK_SHELL_INTEGRATION === '1' → return (shell integration active)
+//   4. Print tip to stderr (so it doesn't interfere with --print-env stdout)
+//   5. Set process.env.CLOAK_TIP_SHOWN = '1'
+```
+
+**Notes:**
+- The shell function emitted by `cloak init` sets `CLOAK_SHELL_INTEGRATION=1`, so the tip is automatically suppressed when integration is active
+- The tip goes to stderr, not stdout, to avoid breaking `--print-env` eval
+- The env var `CLOAK_TIP_SHOWN` prevents repeated tips within the same shell session
+
+---
+
+### 4.3 `src/lib/validate.js` — Name validation
 
 ```js
 const NAME_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/
@@ -158,10 +181,11 @@ export function validateAccountName(name)
 
 ---
 
-### 4.3 `src/cli.js` — Entry point
+### 4.4 `src/cli.js` — Entry point
 
 Responsibilities:
 - Shebang `#!/usr/bin/env node`
+- Call `showTipIfNeeded()` before command execution
 - Read version from `package.json`
 - Register all 8 commands in commander
 - Call `program.parse()`
@@ -189,7 +213,7 @@ The `package.json` must specify:
 
 ---
 
-### 4.4 Commands — Individual contracts
+### 4.5 Commands — Individual contracts
 
 Each command is an `async` function exported as `export async function <name>(args)`.
 
@@ -207,9 +231,11 @@ Effects:
   3. The function must handle `switch` and `use` with eval to apply the export
 ```
 
-The emitted shell function:
+The emitted shell code:
 
 ```bash
+export CLOAK_SHELL_INTEGRATION=1
+
 claude() {
   if [ "$1" = "account" ]; then
     local subcmd="$2"
@@ -380,7 +406,8 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
  7. delete.test.js    → delete.js          (directory removal)
  8. rename.test.js    → rename.js          (directory renaming)
  9. launch.test.js    → launch.js          (switch + exec claude)
-10. init.test.js      → init.js           (shell code output)
+10. tip.test.js       → tip.js            (first-run shell integration tip)
+11. init.test.js      → init.js           (shell code output — updated to include CLOAK_SHELL_INTEGRATION)
 ```
 
 ### 5.4 Test matrix
@@ -502,6 +529,17 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 
 **Testing approach:** `launch.js` should accept an optional `spawner` function (defaults to `child_process.spawn`). Tests inject a stub spawner to verify the correct arguments and environment without actually executing `claude`.
 
+#### `tests/tip.test.js` — First-run shell integration tip
+
+| ID | Scenario | Precondition | Expected |
+|----|----------|-------------|----------|
+| T-01 | Shows tip when shell integration is not active | `CLOAK_SHELL_INTEGRATION` not set, TTY | Tip printed to stderr |
+| T-02 | Suppressed when shell integration is active | `CLOAK_SHELL_INTEGRATION=1` | No tip |
+| T-03 | Suppressed when already shown this session | `CLOAK_TIP_SHOWN=1` | No tip |
+| T-04 | Suppressed when not a TTY | `stdout.isTTY` is false | No tip |
+| T-05 | Sets CLOAK_TIP_SHOWN after showing | — | `process.env.CLOAK_TIP_SHOWN === '1'` |
+| T-06 | Tip contains setup command | — | Stderr includes `eval "$(cloak init)"` |
+
 #### `tests/init.test.js` — Shell integration
 
 | ID | Scenario | Precondition | Expected |
@@ -511,6 +549,7 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 | I-03 | Function routes `-a` to `cloak launch` | — | Stdout contains `command cloak launch` |
 | I-04 | Function delegates other commands | — | Stdout contains `command claude "$@"` |
 | I-05 | Detects current shell | `SHELL` env var set | Output is valid for the detected shell |
+| I-06 | Sets CLOAK_SHELL_INTEGRATION env var | — | Stdout contains `export CLOAK_SHELL_INTEGRATION=1` |
 
 ---
 

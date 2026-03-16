@@ -18,20 +18,21 @@ src/
   cli.js              — entry point, command registration (commander)
   commands/
     init.js            — shell integration (cloak init)
-    create.js          — claude account create
-    switch.js          — claude account switch / use
-    list.js            — claude account list / ls
-    delete.js          — claude account delete / rm
-    whoami.js          — claude account whoami
-    rename.js          — claude account rename
-    launch.js          — cloak launch (switch + exec claude, used by -a)
+    create.js          — cloak create
+    switch.js          — cloak switch / use
+    list.js            — cloak list / ls
+    delete.js          — cloak delete / rm
+    whoami.js          — cloak whoami
+    rename.js          — cloak rename
+    launch.js          — cloak launch (switch + exec claude)
   lib/
     paths.js           — path constants, directory helpers, active account resolution
     validate.js        — account name validation
+    tip.js             — first-run shell integration tip
 tests/
     validate.test.js, paths.test.js, create.test.js, whoami.test.js,
     list.test.js, switch.test.js, delete.test.js, rename.test.js,
-    launch.test.js, init.test.js
+    launch.test.js, tip.test.js, init.test.js
 docs/
     requirements.md    — use cases, business rules, references
     technical-spec.md  — architecture, contracts, test matrix
@@ -45,21 +46,27 @@ Cloak uses Claude Code's official `CLAUDE_CONFIG_DIR` env var to isolate account
 - No file swapping — each account is a complete, independent config
 - Active account is per-shell (determined by env var), not global
 
-Shell integration (`eval "$(cloak init)"`) extends the `claude` command:
+## Two modes of operation
+All commands work immediately via the `cloak` binary (no setup required):
+- `cloak create`, `cloak launch`, `cloak list`, `cloak whoami`, etc.
+
+Shell integration (`eval "$(cloak init)"`) is optional — adds syntax sugar:
 - `claude account <subcommand>` — routed to cloak binary
-- `claude -a <name>` — switch + launch shortcut (routes to cloak launch)
+- `claude -a <name>` — routes to cloak launch
 - Everything else passes through to original claude
+
+On first run without shell integration, a non-blocking tip is shown suggesting setup.
 
 ## Available commands
 ```
-claude account create [name]       — save current session as a new cloak
-claude account switch <name>       — wear a different cloak (alias: use)
-claude account list                — see all cloaks (alias: ls)
-claude account delete <name>       — discard a cloak (alias: rm)
-claude account whoami              — which cloak are you wearing?
-claude account rename <old> <new>  — rename a cloak
-claude -a <name>                   — throw on a cloak and launch claude
-cloak init                         — output shell integration code
+cloak create [name]                — save current session as a new cloak
+cloak launch <name> [args...]      — throw on a cloak and launch claude
+cloak list                         — see all cloaks (alias: ls)
+cloak whoami                       — which cloak are you wearing?
+cloak delete <name>                — discard a cloak (alias: rm)
+cloak rename <old> <new>           — rename a cloak
+cloak switch <name>                — wear a different cloak (alias: use)
+cloak init                         — output shell integration code (optional)
 ```
 
 ## Development methodology

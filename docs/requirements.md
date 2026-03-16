@@ -56,9 +56,26 @@ Each account is an isolated directory — a cloak that Claude can wear:
 
 ---
 
-## 3. Shell integration
+## 3. Two modes of operation
 
-Cloak extends the existing `claude` command. Since a child process cannot modify the parent process's environment, Cloak uses the **shell integration** pattern (same pattern as `nvm`, `pyenv`, `rbenv`):
+Cloak works in two modes. Both are fully functional — shell integration is optional syntax sugar.
+
+### 3.1 Direct mode (no setup required)
+
+After `npm install -g @synth1s/cloak`, all commands are available immediately via the `cloak` binary:
+
+```bash
+cloak create work          # save current session
+cloak launch work          # switch + launch claude
+cloak list                 # see all accounts
+cloak whoami               # which account is active
+```
+
+This mode works on any shell, any OS, with zero configuration.
+
+### 3.2 Shell integration mode (optional)
+
+For users who prefer the `claude account` and `claude -a` syntax:
 
 ```bash
 # Add to .bashrc or .zshrc (once):
@@ -67,10 +84,24 @@ eval "$(cloak init)"
 
 The `cloak init` command emits a shell function that:
 1. Adds the `claude account` subcommand — routed to the `cloak` binary
-2. Adds the `claude -a <name>` flag — shortcut for switch + launch
+2. Adds the `claude -a <name>` flag — shortcut for `cloak launch`
 3. Keeps everything else in `claude` working normally
 
-Without integration, the user must use the `cloak` binary directly and set `CLAUDE_CONFIG_DIR` manually.
+### 3.3 First-run shell integration tip
+
+When the user runs any `cloak` command for the first time and shell integration is not detected, the system displays a one-time, non-blocking tip:
+
+```
+💡 Tip: Run this once to enable "claude -a" and "claude account":
+   echo 'eval "$(cloak init)"' >> ~/.bashrc && source ~/.bashrc
+```
+
+**Business rules:**
+- The tip is shown only when shell integration is not active (the `claude` function does not exist in the current shell)
+- The tip is non-blocking — it does not interrupt the command's execution
+- The tip is shown at most once per shell session (tracked via an environment variable)
+- The tip is suppressed if stdout is not a TTY (piped output, scripts)
+- After the tip is shown, the command proceeds normally
 
 ---
 
@@ -80,19 +111,21 @@ Without integration, the user must use the `cloak` binary directly and set `CLAU
 
 **Actor:** User installing Cloak for the first time.
 
-**Main flow:**
+**Main flow (direct mode — no setup):**
+1. User runs `npm install -g @synth1s/cloak`
+2. User runs any `cloak` command (e.g., `cloak create work`)
+3. System shows a one-time tip suggesting shell integration
+4. Command executes normally regardless
+
+**Alternative flow (shell integration):**
 1. User adds `eval "$(cloak init)"` to their `.bashrc` or `.zshrc`
 2. User restarts the terminal or runs `source ~/.bashrc`
 3. The `claude` command now accepts `account` and `-a`
 
-**Alternative flow — no integration:**
-1. User does not configure the shell
-2. Uses the `cloak` binary directly for management
-3. Sets `CLAUDE_CONFIG_DIR` manually before running `claude`
-
 **Business rules:**
 - `cloak init` must detect the current shell (bash or zsh) and emit compatible code
 - The shell function must only intercept `claude account` and `claude -a`; everything else passes through to the original `claude` binary
+- The first-run tip is shown only once per session, only on TTY, and does not block execution
 
 ---
 
@@ -267,14 +300,31 @@ Without integration, the user must use the `cloak` binary directly and set `CLAU
 
 **Business rules:**
 - All arguments after the account name are passed directly to `claude`
-- This command requires shell integration (`eval "$(cloak init)"`)
+- `cloak launch <name>` works without shell integration
+- `claude -a <name>` requires shell integration (it routes to `cloak launch`)
 - The switch + exec logic lives in Node.js (`cloak launch`), not in the shell function, ensuring full test coverage
 
 ---
 
 ## 5. Full journey flows
 
-### 5.1 First-time setup
+### 5.1 First-time setup (direct mode — zero config)
+
+```
+$ npm i -g @synth1s/cloak
+
+# Logged in with work account in Claude Code:
+$ cloak create work
+💡 Tip: Run this once to enable "claude -a" and "claude account":
+   echo 'eval "$(cloak init)"' >> ~/.bashrc && source ~/.bashrc
+✔ Cloak "work" created.
+
+# /logout + /login with personal account in Claude Code:
+$ cloak create home
+✔ Cloak "home" created.
+```
+
+### 5.2 First-time setup (with shell integration)
 
 ```
 $ npm i -g @synth1s/cloak
@@ -290,7 +340,18 @@ $ claude account create home
 ✔ Cloak "home" created.
 ```
 
-### 5.2 Daily use — one command
+### 5.3 Daily use — direct mode
+
+```
+$ cloak launch work
+# Claude Code opens wearing the work cloak
+
+# In another terminal:
+$ cloak launch home
+# Claude Code opens wearing the home cloak
+```
+
+### 5.4 Daily use — shell integration mode
 
 ```
 $ claude -a work
@@ -301,35 +362,26 @@ $ claude -a home
 # Claude Code opens wearing the home cloak
 ```
 
-### 5.3 Daily use — switch then launch
+### 5.5 Check which cloak you're wearing
 
 ```
-$ claude account switch work
-✔ Now wearing cloak "work".
-$ claude
-# Claude Code opens with work config
-```
-
-### 5.4 Check which cloak you're wearing
-
-```
-$ claude account whoami
+$ cloak whoami
 work
 
-$ claude account list
+$ cloak list
 ● work (active)
 ○ home
 ```
 
-### 5.5 Concurrent sessions
+### 5.6 Concurrent sessions
 
 ```
 # Terminal A — wearing the work cloak:
-$ claude -a work
+$ cloak launch work
 # ... working ...
 
 # Terminal B — wearing the home cloak (at the same time):
-$ claude -a home
+$ cloak launch home
 # ... personal use, no conflicts ...
 ```
 
@@ -375,7 +427,8 @@ When creating an account, Cloak needs to locate the current session files:
 
 ### 7.1 Installation
 - Install via `npm install -g @synth1s/cloak`
-- Instant use via `npx @synth1s/cloak` (except switch and shortcut, which require shell integration)
+- All commands work immediately after install via `cloak` binary (no setup required)
+- Shell integration (`eval "$(cloak init)"`) is optional — enables `claude account` and `claude -a` syntax
 - Requires Node.js >= 18
 
 ### 7.2 Performance
@@ -384,7 +437,8 @@ When creating an account, Cloak needs to locate the current session files:
 ### 7.3 Compatibility
 - macOS, Linux, and Windows (via WSL or Git Bash)
 - Supported shells for integration: bash, zsh
-- Management commands (create, list, delete, whoami, rename) work without shell integration via `cloak` directly
+- All commands work without shell integration via `cloak` binary directly (including `cloak launch`)
+- Shell integration only adds `claude account` and `claude -a` syntax sugar
 
 ### 7.4 Dependencies
 - Minimal external dependencies
