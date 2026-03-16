@@ -25,6 +25,16 @@ function interceptExit(fn) {
   }
 }
 
+function interceptStderr(fn) {
+  const original = console.error
+  let output = ''
+  console.error = (...args) => { output += args.join(' ') }
+  return async () => {
+    try { await fn() } finally { console.error = original }
+    return output
+  }
+}
+
 async function captureStdoutAsync(fn) {
   const original = process.stdout.write
   let output = ''
@@ -45,10 +55,19 @@ describe('switch', () => {
     assert.ok(output.includes('export CLAUDE_CONFIG_DIR='))
   })
 
-  it('S-02: fails for missing account', async () => {
+  it('S-02: exits with code 1 for missing account', async () => {
     const run = interceptExit(() => switchAccount('nonexistent', { printEnv: true }))
     const code = await run()
     assert.equal(code, 1)
+  })
+
+  it('S-02b: shows friendly error for missing account', async () => {
+    const capture = interceptStderr(() => {
+      const exitRun = interceptExit(() => switchAccount('nonexistent', { printEnv: true }))
+      return exitRun()
+    })
+    const stderr = await capture()
+    assert.ok(stderr.includes('not found'))
   })
 
   it('S-03: warns when already on the same account', async () => {

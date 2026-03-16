@@ -8,7 +8,7 @@ const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'cloak-test-'))
 process.env.HOME = TMP
 delete process.env.CLAUDE_CONFIG_DIR
 
-const { profileDir, profileAuthPath, profileSettingsPath, claudeAuthPath, claudeSettingsPath } =
+const { profileDir, profileAuthPath, profileSettingsPath, profileExists, claudeAuthPath, claudeSettingsPath } =
   await import('../src/lib/paths.js')
 const { createAccount } = await import('../src/commands/create.js')
 
@@ -33,18 +33,23 @@ function cleanup() {
   if (fs.existsSync(claudeDir)) fs.rmSync(claudeDir, { recursive: true, force: true })
 }
 
-// Intercept process.exit to test error paths
 function interceptExit(fn) {
   let exitCode = null
   const original = process.exit
   process.exit = (code) => { exitCode = code }
   return async () => {
-    try {
-      await fn()
-    } finally {
-      process.exit = original
-    }
+    try { await fn() } finally { process.exit = original }
     return exitCode
+  }
+}
+
+function interceptStderr(fn) {
+  const original = console.error
+  let output = ''
+  console.error = (...args) => { output += args.join(' ') }
+  return async () => {
+    try { await fn() } finally { console.error = original }
+    return output
   }
 }
 
@@ -63,17 +68,39 @@ describe('create', () => {
     assert.equal(saved.token, 'work-token')
   })
 
-  it('C-02: fails without active session', async () => {
+  it('C-02: exits with code 1 and does not create profile when no session', async () => {
+    // No auth file exists
     const run = interceptExit(() => createAccount('work'))
     const code = await run()
     assert.equal(code, 1)
+    assert.equal(profileExists('work'), false)
   })
 
-  it('C-03: fails with invalid name', async () => {
+  it('C-02b: shows friendly error message when no session', async () => {
+    const capture = interceptStderr(() => {
+      const exitRun = interceptExit(() => createAccount('work'))
+      return exitRun()
+    })
+    const stderr = await capture()
+    assert.ok(stderr.includes('No active Claude Code session'))
+  })
+
+  it('C-03: exits with code 1 and does not create profile for invalid name', async () => {
     fakeAuth()
     const run = interceptExit(() => createAccount('../bad'))
     const code = await run()
     assert.equal(code, 1)
+    assert.equal(profileExists('../bad'), false)
+  })
+
+  it('C-03b: shows friendly error message for invalid name', async () => {
+    fakeAuth()
+    const capture = interceptStderr(() => {
+      const exitRun = interceptExit(() => createAccount('../bad'))
+      return exitRun()
+    })
+    const stderr = await capture()
+    assert.ok(stderr.includes('Account name'))
   })
 
   it('C-04: copies settings when they exist', async () => {

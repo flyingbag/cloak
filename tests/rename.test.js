@@ -32,6 +32,16 @@ function interceptExit(fn) {
   }
 }
 
+function interceptStderr(fn) {
+  const original = console.error
+  let output = ''
+  console.error = (...args) => { output += args.join(' ') }
+  return async () => {
+    try { await fn() } finally { console.error = original }
+    return output
+  }
+}
+
 describe('rename', () => {
   beforeEach(() => {
     delete process.env.CLAUDE_CONFIG_DIR
@@ -53,25 +63,39 @@ describe('rename', () => {
     assert.equal(profileExists('renamed'), true)
   })
 
-  it('R-03: fails when destination name already exists', async () => {
+  it('R-03: fails when destination name exists and preserves both', async () => {
     createFakeProfile('first')
     createFakeProfile('second')
     const run = interceptExit(() => renameAccount('first', 'second'))
     const code = await run()
     assert.equal(code, 1)
+    assert.equal(profileExists('first'), true)
+    assert.equal(profileExists('second'), true)
   })
 
-  it('R-04: fails when source account does not exist', async () => {
+  it('R-03b: shows friendly error when destination exists', async () => {
+    createFakeProfile('first')
+    createFakeProfile('second')
+    const capture = interceptStderr(() => {
+      const exitRun = interceptExit(() => renameAccount('first', 'second'))
+      return exitRun()
+    })
+    const stderr = await capture()
+    assert.ok(stderr.includes('already in use'))
+  })
+
+  it('R-04: exits with code 1 when source does not exist', async () => {
     const run = interceptExit(() => renameAccount('ghost', 'new-name'))
     const code = await run()
     assert.equal(code, 1)
   })
 
-  it('R-05: fails with invalid destination name', async () => {
+  it('R-05: exits with code 1 for invalid destination name', async () => {
     createFakeProfile('valid')
     const run = interceptExit(() => renameAccount('valid', '../bad'))
     const code = await run()
     assert.equal(code, 1)
+    assert.equal(profileExists('valid'), true)
   })
 
   it('R-06: preserves all content after rename', async () => {

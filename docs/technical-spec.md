@@ -427,8 +427,10 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 | ID | Scenario | Precondition | Expected |
 |----|----------|-------------|----------|
 | C-01 | Create with active session | `~/.claude.json` exists | Directory created with auth copied |
-| C-02 | Create without active session | `~/.claude.json` missing | Error, exit 1 |
-| C-03 | Create with invalid name | — | Validation error |
+| C-02 | Create without active session | `~/.claude.json` missing | Exit 1, profile not created |
+| C-02b | Friendly error message when no session | `~/.claude.json` missing | Stderr contains "No active Claude Code session" |
+| C-03 | Create with invalid name | — | Exit 1, profile not created |
+| C-03b | Friendly error message for invalid name | — | Stderr contains "Account name" |
 | C-04 | Create with settings | `settings.json` exists | Auth + settings copied |
 | C-05 | Create without settings | `settings.json` missing | Only auth copied |
 | C-06 | Overwrite existing (confirm) | Account exists | Files overwritten |
@@ -458,7 +460,8 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 | ID | Scenario | Precondition | Expected |
 |----|----------|-------------|----------|
 | S-01 | Switch with --print-env | Account exists | Stdout contains `export CLAUDE_CONFIG_DIR=...` |
-| S-02 | Switch to missing account | — | Error, exit 1 |
+| S-02 | Switch to missing account | — | Exit 1 |
+| S-02b | Friendly error for missing account | — | Stderr contains "not found" |
 | S-03 | Switch to already active account | `CLAUDE_CONFIG_DIR` already points to it | Warning, no export output |
 | S-04 | Switch without --print-env | Account exists | Manual instructions printed |
 | S-05 | Output contains correct path | — | Path resolves to `~/.cloak/profiles/<name>` |
@@ -469,8 +472,10 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 |----|----------|-------------|----------|
 | D-01 | Delete inactive account (confirm) | Account exists, not active | Directory removed |
 | D-02 | Delete inactive account (cancel) | — | No changes |
-| D-03 | Delete active account | `CLAUDE_CONFIG_DIR` points to it | Error, exit 1 |
-| D-04 | Delete missing account | — | Error |
+| D-03 | Delete active account | `CLAUDE_CONFIG_DIR` points to it | Exit 1, profile preserved |
+| D-03b | Friendly error when deleting active | `CLAUDE_CONFIG_DIR` points to it | Stderr contains "Can't discard a cloak you're wearing" |
+| D-04 | Delete missing account | — | Exit 1 |
+| D-04b | Friendly error for missing account | — | Stderr contains "not found" |
 | D-05 | Delete removes entire directory | Account with auth + settings + more | Everything removed |
 
 #### `tests/rename.test.js` — Rename command
@@ -479,9 +484,10 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 |----|----------|-------------|----------|
 | R-01 | Rename inactive account | Account exists, new name free | Directory renamed |
 | R-02 | Rename active account | `CLAUDE_CONFIG_DIR` points to it | Directory renamed + warning |
-| R-03 | Destination name taken | — | Error |
-| R-04 | Source account missing | — | Error |
-| R-05 | Invalid destination name | — | Validation error |
+| R-03 | Destination name taken | — | Exit 1, both profiles preserved |
+| R-03b | Friendly error when destination exists | — | Stderr contains "already in use" |
+| R-04 | Source account missing | — | Exit 1 |
+| R-05 | Invalid destination name | — | Exit 1, source preserved |
 | R-06 | Rename preserves content | Account with multiple files | All files present in new directory |
 
 #### `tests/launch.test.js` — Launch command (switch + exec)

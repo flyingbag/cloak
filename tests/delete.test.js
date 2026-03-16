@@ -32,6 +32,16 @@ function interceptExit(fn) {
   }
 }
 
+function interceptStderr(fn) {
+  const original = console.error
+  let output = ''
+  console.error = (...args) => { output += args.join(' ') }
+  return async () => {
+    try { await fn() } finally { console.error = original }
+    return output
+  }
+}
+
 describe('delete', () => {
   beforeEach(() => {
     delete process.env.CLAUDE_CONFIG_DIR
@@ -50,18 +60,39 @@ describe('delete', () => {
     assert.equal(profileExists('home'), true)
   })
 
-  it('D-03: refuses to delete active account', async () => {
+  it('D-03: refuses to delete active account and preserves it', async () => {
     createFakeProfile('work')
     process.env.CLAUDE_CONFIG_DIR = profileDir('work')
     const run = interceptExit(() => deleteAccount('work', { confirm: true }))
     const code = await run()
     assert.equal(code, 1)
+    assert.equal(profileExists('work'), true)
   })
 
-  it('D-04: fails for missing account', async () => {
+  it('D-03b: shows friendly error when deleting active account', async () => {
+    createFakeProfile('work')
+    process.env.CLAUDE_CONFIG_DIR = profileDir('work')
+    const capture = interceptStderr(() => {
+      const exitRun = interceptExit(() => deleteAccount('work', { confirm: true }))
+      return exitRun()
+    })
+    const stderr = await capture()
+    assert.ok(stderr.includes("Can't discard a cloak you're wearing"))
+  })
+
+  it('D-04: exits with code 1 for missing account', async () => {
     const run = interceptExit(() => deleteAccount('nonexistent', { confirm: true }))
     const code = await run()
     assert.equal(code, 1)
+  })
+
+  it('D-04b: shows friendly error for missing account', async () => {
+    const capture = interceptStderr(() => {
+      const exitRun = interceptExit(() => deleteAccount('nonexistent', { confirm: true }))
+      return exitRun()
+    })
+    const stderr = await capture()
+    assert.ok(stderr.includes('not found'))
   })
 
   it('D-05: removes entire directory', async () => {
