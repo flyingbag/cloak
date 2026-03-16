@@ -251,14 +251,22 @@ claude() {
       command cloak "$subcmd" "$@"
     fi
   elif [ "$1" = "-a" ] && [ -n "$2" ]; then
-    command cloak launch "${@:2}"
+    local name="$2"
+    shift 2
+    local output
+    output=$(command cloak switch --print-env "$name")
+    local exit_code=$?
+    if [ $exit_code -eq 0 ]; then
+      eval "$output"
+      command claude "$@"
+    fi
   else
     command claude "$@"
   fi
 }
 ```
 
-**Note:** the `-a` branch is now a single line that delegates entirely to `cloak launch`. All switch + exec logic lives in Node.js (`commands/launch.js`), not in the shell function.
+**Note:** the `-a` branch first evals the switch (setting `CLAUDE_CONFIG_DIR` in the parent shell), then calls `command claude`. This ensures `whoami` reflects the correct account after Claude exits. The `cloak launch` command is still available for direct mode (no shell integration).
 
 #### `commands/create.js`
 
@@ -546,10 +554,11 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 |----|----------|-------------|----------|
 | I-01 | Output contains shell function `claude()` | — | Stdout contains `claude()` |
 | I-02 | Function intercepts `account switch` | — | Stdout contains logic for `account` + `switch` |
-| I-03 | Function routes `-a` to `cloak launch` | — | Stdout contains `command cloak launch` |
+| I-03 | `-a` evals switch then calls claude | — | Stdout contains `cloak switch --print-env` and `command claude` in the `-a` branch |
 | I-04 | Function delegates other commands | — | Stdout contains `command claude "$@"` |
 | I-05 | Detects current shell | `SHELL` env var set | Output is valid for the detected shell |
 | I-06 | Sets CLOAK_SHELL_INTEGRATION env var | — | Stdout contains `export CLOAK_SHELL_INTEGRATION=1` |
+| I-07 | `-a` sets env in parent shell | — | The `-a` branch contains `eval` before `command claude` |
 
 ---
 

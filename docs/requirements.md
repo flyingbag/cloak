@@ -285,24 +285,28 @@ When the user runs any `cloak` command for the first time and shell integration 
 
 **Actor:** User in their daily workflow.
 
-**Main flow:**
+**Main flow (with shell integration):**
 1. User runs `claude -a <name>`
-2. Shell function routes to `cloak launch <name>`
-3. System validates the name and checks the account exists
-4. System sets `CLAUDE_CONFIG_DIR=~/.cloak/profiles/<name>`
-5. System spawns the original `claude` binary with the modified environment
-6. Claude Code opens using the selected cloak's configuration
+2. Shell function calls `cloak switch --print-env <name>` and evals the output (sets `CLAUDE_CONFIG_DIR` in the **current shell**)
+3. Shell function calls `command claude` with any extra arguments
+4. Claude Code opens using the selected cloak's configuration
+5. After Claude Code exits, the shell still has the correct `CLAUDE_CONFIG_DIR`
+
+**Main flow (direct mode):**
+1. User runs `cloak launch <name>`
+2. System validates and sets `CLAUDE_CONFIG_DIR` in the child process
+3. System spawns `claude` — Claude Code opens with the selected cloak
+4. After Claude Code exits, the parent shell's `CLAUDE_CONFIG_DIR` is **unchanged**
 
 **Flow with extra arguments:**
 1. User runs `claude -a work --resume`
-2. Shell function routes to `cloak launch work --resume`
-3. System sets `CLAUDE_CONFIG_DIR` and spawns `claude --resume`
+2. Shell function evals the switch, then calls `command claude --resume`
 
 **Business rules:**
 - All arguments after the account name are passed directly to `claude`
-- `cloak launch <name>` works without shell integration
-- `claude -a <name>` requires shell integration (it routes to `cloak launch`)
-- The switch + exec logic lives in Node.js (`cloak launch`), not in the shell function, ensuring full test coverage
+- `claude -a <name>` (shell integration) sets `CLAUDE_CONFIG_DIR` in the **parent shell**, so `whoami` reflects the correct account after Claude exits
+- `cloak launch <name>` (direct mode) sets `CLAUDE_CONFIG_DIR` only in the **child process**, so the parent shell is not affected
+- This difference is documented and intentional — shell integration provides the richer experience
 
 ---
 
