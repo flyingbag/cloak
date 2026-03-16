@@ -7,7 +7,7 @@ export function getInitScript() {
     '  if [ "$1" = "account" ]; then',
     '    local subcmd="$2"',
     '    shift 2',
-    '    if [ "$subcmd" = "switch" ] || [ "$subcmd" = "use" ]; then',
+    '    if [ "$subcmd" = "switch" ] || [ "$subcmd" = "use" ] || [ "$subcmd" = "launch" ]; then',
     '      local output',
     '      output=$(command cloak switch --print-env "$@")',
     '      local exit_code=$?',

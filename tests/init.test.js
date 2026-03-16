@@ -52,4 +52,13 @@ describe('init', () => {
     assert.ok(evalIndex > aIndex, 'eval appears after -a')
     assert.ok(claudeIndex > evalIndex, 'command claude appears after eval')
   })
+
+  it('I-08: account launch is treated same as switch/use (eval in parent shell)', () => {
+    const output = getInitScript()
+    // The condition that checks subcmd must include "launch"
+    assert.ok(output.includes('"launch"'), 'launch is checked in account branch')
+    // Verify it's in the same condition as switch/use, not in the generic else
+    const switchLine = output.split('\n').find(l => l.includes('"switch"') && l.includes('"use"'))
+    assert.ok(switchLine.includes('"launch"'), 'launch is in the same condition as switch and use')
+  })
 })
