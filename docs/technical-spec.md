@@ -302,7 +302,7 @@ Effects:
   5. Create directory ~/.cloak/profiles/<name>/
   6. Copy claudeAuthPath() → profileAuthPath(name)
   7. Copy claudeSettingsPath() → profileSettingsPath(name) (if it exists)
-  8. Display: ✔ Cloak "<name>" created.
+  8. Display: + Cloak "<name>" created.
 ```
 
 #### `commands/switch.js`
@@ -316,7 +316,7 @@ Effects:
   4. If options.printEnv:
      - Print to stdout:
        export CLAUDE_CONFIG_DIR=<profileDir(target)>
-       echo "✔ Now wearing cloak \"<target>\"."
+       (confirmation sent to stderr separately)
      - Exit 0
   5. If NOT options.printEnv (no shell integration):
      - Prompt user to choose:
@@ -368,9 +368,9 @@ Effects:
   3. If empty → "No cloaks in your wardrobe yet." + suggest create
   4. Otherwise → display alphabetically sorted list with active marker
 Output format:
-  ● work (active)
-  ○ home
-  ○ test
+  > work (active)
+    home
+    test
 ```
 
 #### `commands/delete.js`
@@ -383,7 +383,7 @@ Effects:
   3. If getActiveProfile() === name → error: "Can't discard a cloak you're wearing.", exit 1
   4. Confirmation prompt
   5. Remove directory ~/.cloak/profiles/<name>/ recursively
-  6. Display: ✔ Cloak "<name>" discarded.
+  6. Display: + Cloak "<name>" discarded.
 ```
 
 #### `commands/whoami.js`
@@ -407,7 +407,7 @@ Effects:
   4. Rename directory ~/.cloak/profiles/<old>/ → ~/.cloak/profiles/<new>/
   5. If getActiveProfile() === oldName:
      - Warn: "Run `claude account switch <new>` to update your session."
-  6. Display: ✔ Cloak "<old>" renamed to "<new>".
+  6. Display: + Cloak "<old>" renamed to "<new>".
 ```
 
 ---
@@ -626,7 +626,7 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 ```json
 {
   "name": "@synth1s/cloak",
-  "version": "1.3.0",
+  "version": "2.2.0",
   "description": "Cloak your Claude. Switch identities in seconds.",
   "type": "module",
   "bin": {
@@ -678,7 +678,7 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 │  claude()  ← function injected by eval "$(cloak init)"   │
 │    │                                                     │
 │    ├─ "claude account ..."  → command cloak <args>       │
-│    ├─ "claude -a <name>"    → command cloak launch <name>│
+│    ├─ "claude -a <name>"    → eval switch + command claude│
 │    └─ "claude ..."          → command claude <args>      │
 └──────────────────────────────────────────────────────────┘
          │

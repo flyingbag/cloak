@@ -66,7 +66,7 @@ After `eval "$(cloak init)"`, the shell gets two functions:
 
 **`cloak()` function** — intercepts `cloak switch` to set `CLAUDE_CONFIG_DIR` in the current shell:
 ```bash
-cloak switch work          # switches account ✔
+cloak switch work          # switches account
 cloak create work          # delegated to binary (no interception needed)
 cloak list                 # delegated to binary
 cloak whoami               # delegated to binary
@@ -87,7 +87,7 @@ All commands that don't modify environment variables (`create`, `list`, `whoami`
 When the user runs `cloak switch` for the first time without shell integration, the system prompts:
 
 ```
-⚠ Shell integration is required to switch accounts.
+! Shell integration is required to switch accounts.
 
 ? How would you like to proceed?
 ❯ Set it up now (recommended)
@@ -101,7 +101,7 @@ Automatic setup appends `eval "$(cloak init)"` to the user's rc file (`.bashrc` 
 When any other `cloak` command runs without shell integration, a non-blocking tip is shown:
 
 ```
-💡 Tip: Run this once to enable "claude -a" and "claude account":
+* Tip: Run this once to enable "claude -a" and "claude account":
    echo 'eval "$(cloak init)"' >> ~/.bashrc && source ~/.bashrc
 ```
 
@@ -384,13 +384,13 @@ $ npm i -g @synth1s/cloak
 
 # Logged in with work account in Claude Code:
 $ cloak create work
-💡 Tip: Run this once to enable "claude -a" and "claude account":
+* Tip: Run this once to enable "claude -a" and "claude account":
    echo 'eval "$(cloak init)"' >> ~/.bashrc && source ~/.bashrc
-✔ Cloak "work" created.
++ Cloak "work" created.
 
 # /logout + /login with personal account in Claude Code:
 $ cloak create home
-✔ Cloak "home" created.
++ Cloak "home" created.
 ```
 
 ### 5.2 First-time setup (with shell integration)
@@ -402,11 +402,11 @@ $ source ~/.bashrc
 
 # Logged in with work account in Claude Code:
 $ claude account create work
-✔ Cloak "work" created.
++ Cloak "work" created.
 
 # /logout + /login with personal account in Claude Code:
 $ claude account create home
-✔ Cloak "home" created.
++ Cloak "home" created.
 ```
 
 ### 5.3 Daily use — with shell integration
@@ -440,8 +440,8 @@ $ cloak whoami
 work
 
 $ cloak list
-● work (active)
-○ home
+> work (active)
+  home
 ```
 
 ### 5.6 Concurrent sessions
@@ -508,8 +508,9 @@ When creating an account, Cloak needs to locate the current session files:
 ### 7.3 Compatibility
 - macOS, Linux, and Windows (via WSL or Git Bash)
 - Supported shells for integration: bash, zsh
-- All commands work without shell integration via `cloak` binary directly (including `cloak launch`)
-- Shell integration only adds `claude account` and `claude -a` syntax sugar
+- All commands except `switch` work without shell integration via `cloak` binary directly
+- `switch` requires shell integration to modify the parent shell's environment
+- Shell integration adds `claude account`, `claude -a`, and `cloak switch` support
 
 ### 7.4 Dependencies
 - Minimal external dependencies
