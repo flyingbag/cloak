@@ -1,5 +1,9 @@
 # @synth1s/cloak
 
+[![CI](https://github.com/synth1s/cloak/actions/workflows/ci.yml/badge.svg)](https://github.com/synth1s/cloak/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/@synth1s/cloak)](https://www.npmjs.com/package/@synth1s/cloak)
+[![license](https://img.shields.io/npm/l/@synth1s/cloak)](LICENSE)
+
 > Cloak your Claude. Switch identities in seconds.
 
 Every developer wears a different cloak. One for work, one for personal projects, one for that freelance gig. **Cloak** lets you dress your Claude Code in the right identity — and switch between them without breaking a sweat.
