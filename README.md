@@ -6,7 +6,9 @@
 
 **Stop logging out. Start switching.**
 
-Multiple Claude Code accounts — one command. Sessions, tokens, MCP servers, and settings fully preserved. Concurrent sessions across terminals. [181+ developers asked for this.](https://github.com/anthropics/claude-code/issues/18435)
+Every developer wears a different cloak. One for work, one for personal projects, one for that freelance gig. **Cloak** lets you dress your Claude Code in the right identity — and switch between them without breaking a sweat.
+
+Sessions, tokens, MCP servers, and settings fully preserved. Concurrent sessions across terminals. [181+ developers asked for this.](https://github.com/anthropics/claude-code/issues/18435)
 
 ## Before / After
 
