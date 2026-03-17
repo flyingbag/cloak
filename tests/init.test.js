@@ -94,30 +94,28 @@ describe('init', () => {
     assert.ok(!hasCommandClaude, 'account switch branch does not call command claude')
   })
 
-  it('I-09: passthrough shows active cloak name before launching claude', () => {
+  it('I-09: passthrough calls cloak banner before launching claude', () => {
     const output = getInitScript()
     const func = extractFunction(output, 'claude')
     const lines = func.split('\n')
 
-    // Find the else branch (passthrough)
     const elseIdx = lines.findLastIndex(l => l.trim() === 'else')
     assert.ok(elseIdx > -1, 'else branch exists')
 
     const afterElse = lines.slice(elseIdx)
-    const whoamiIdx = afterElse.findIndex(l => l.includes('cloak whoami'))
+    const bannerIdx = afterElse.findIndex(l => l.includes('cloak banner'))
     const claudeIdx = afterElse.findIndex(l => l.includes('command claude'))
-    assert.ok(whoamiIdx > -1, 'else branch contains cloak whoami')
-    assert.ok(claudeIdx > whoamiIdx, 'command claude comes after cloak whoami')
+    assert.ok(bannerIdx > -1, 'else branch contains cloak banner')
+    assert.ok(claudeIdx > bannerIdx, 'command claude comes after cloak banner')
   })
 
-  it('I-10: cloak message goes to stderr', () => {
+  it('I-10: banner output goes to stderr', () => {
     const output = getInitScript()
     const func = extractFunction(output, 'claude')
 
-    // Find the echo line with "Wearing cloak" — must have >&2
     const lines = func.split('\n')
-    const echoLine = lines.find(l => l.includes('Wearing cloak'))
-    assert.ok(echoLine, 'echo with Wearing cloak exists')
-    assert.ok(echoLine.includes('>&2'), 'message is sent to stderr')
+    const bannerLine = lines.find(l => l.includes('cloak banner'))
+    assert.ok(bannerLine, 'cloak banner line exists')
+    assert.ok(bannerLine.includes('>&2'), 'banner output is sent to stderr')
   })
 })

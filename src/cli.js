@@ -12,6 +12,7 @@ import { listAccounts } from './commands/list.js'
 import { deleteAccount } from './commands/delete.js'
 import { whoami } from './commands/whoami.js'
 import { renameAccount } from './commands/rename.js'
+import { showBanner } from './commands/banner.js'
 import { initShell } from './commands/init.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -57,6 +58,11 @@ program
   .command('rename <old> <new>')
   .description('Rename a cloak')
   .action((oldName, newName) => renameAccount(oldName, newName))
+
+program
+  .command('banner', { hidden: true })
+  .description('Show active cloak banner')
+  .action(() => showBanner())
 
 program
   .command('init')
