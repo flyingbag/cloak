@@ -43,7 +43,7 @@ export function getInitScript() {
     '    fi',
     '  else',
     '    if [ -n "$CLAUDE_CONFIG_DIR" ]; then',
-    '      command cloak banner 2>/dev/null >&2',
+    '      command cloak banner >&2',
     '    fi',
     '    command claude "$@"',
     '  fi',

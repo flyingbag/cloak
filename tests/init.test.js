@@ -116,6 +116,6 @@ describe('init', () => {
     const lines = func.split('\n')
     const bannerLine = lines.find(l => l.includes('cloak banner'))
     assert.ok(bannerLine, 'cloak banner line exists')
-    assert.ok(bannerLine.includes('>&2'), 'banner output is sent to stderr')
+    assert.ok(bannerLine.includes('>&2'), 'banner output redirected to stderr')
   })
 })
