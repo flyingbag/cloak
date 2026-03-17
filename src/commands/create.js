@@ -1,5 +1,4 @@
 import { existsSync, copyFileSync, mkdirSync } from 'fs'
-import chalk from 'chalk'
 import inquirer from 'inquirer'
 import {
   claudeAuthPath,
@@ -11,14 +10,14 @@ import {
   ensureProfilesDir,
 } from '../lib/paths.js'
 import { validateAccountName } from '../lib/validate.js'
+import * as msg from '../lib/messages.js'
 
 export async function createAccount(name, options = {}) {
-  // Interactive prompt if no name given
   if (!name) {
     const answer = await inquirer.prompt([{
       type: 'input',
       name: 'accountName',
-      message: 'Account name:',
+      message: msg.prompts.accountName,
       validate: (v) => {
         const result = validateAccountName(v.trim())
         return result.valid || result.error
@@ -29,37 +28,36 @@ export async function createAccount(name, options = {}) {
 
   const validation = validateAccountName(name)
   if (!validation.valid) {
-    console.error(chalk.red(`✖ ${validation.error}`))
+    console.error(msg.validationError(validation.error))
     process.exit(1)
     return
   }
 
   const authSource = claudeAuthPath()
   if (!existsSync(authSource)) {
-    console.error(chalk.red('✖ No active Claude Code session found.'))
-    console.log(chalk.dim('  Open Claude Code and log in first.'))
+    console.error(msg.noActiveSession())
+    console.log(msg.loginFirst())
     process.exit(1)
     return
   }
 
   if (profileExists(name)) {
     if (options.confirm === false) {
-      console.log(chalk.dim('Cancelled.'))
+      console.log(msg.cancelled())
       return
     }
     if (options.confirm === undefined) {
       const { overwrite } = await inquirer.prompt([{
         type: 'confirm',
         name: 'overwrite',
-        message: `Cloak "${name}" already exists. Overwrite?`,
+        message: msg.prompts.overwriteConfirm(name),
         default: false,
       }])
       if (!overwrite) {
-        console.log(chalk.dim('Cancelled.'))
+        console.log(msg.cancelled())
         return
       }
     }
-    // options.confirm === true → proceed
   }
 
   ensureProfilesDir()
@@ -73,5 +71,5 @@ export async function createAccount(name, options = {}) {
     copyFileSync(settingsSource, profileSettingsPath(name))
   }
 
-  console.log(chalk.green(`✔ Cloak "${name}" created.`))
+  console.log(msg.cloakCreated(name))
 }

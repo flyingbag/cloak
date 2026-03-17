@@ -28,6 +28,8 @@ src/
     paths.js           — path constants, directory helpers, active account resolution
     validate.js        — account name validation
     tip.js             — first-run shell integration tip
+    setup.js           — automatic shell integration setup
+    messages.js        — centralized user-facing messages (i18n-ready)
 tests/
     validate.test.js, paths.test.js, create.test.js, whoami.test.js,
     list.test.js, switch.test.js, delete.test.js, rename.test.js,

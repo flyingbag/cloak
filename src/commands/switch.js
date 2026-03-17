@@ -1,66 +1,66 @@
-import chalk from 'chalk'
 import inquirer from 'inquirer'
 import { profileDir, profileExists, getActiveProfile } from '../lib/paths.js'
 import { validateAccountName } from '../lib/validate.js'
 import { getRcFilePath, isAlreadyInstalled, installToRcFile } from '../lib/setup.js'
+import * as msg from '../lib/messages.js'
 
 export async function switchAccount(name, options = {}) {
   const validation = validateAccountName(name)
   if (!validation.valid) {
-    console.error(chalk.red(`✖ ${validation.error}`))
+    console.error(msg.validationError(validation.error))
     process.exit(1)
     return
   }
 
   if (!profileExists(name)) {
-    console.error(chalk.red(`✖ Account "${name}" not found.`))
-    console.log(chalk.dim(`  Run: claude account create ${name}`))
+    console.error(msg.accountNotFound(name))
+    console.log(msg.suggestCreate(name))
     process.exit(1)
     return
   }
 
   const active = getActiveProfile()
   if (active === name) {
-    console.log(chalk.yellow(`⚡ Already wearing cloak "${name}".`))
+    console.log(msg.alreadyWearing(name))
     return
   }
 
   const dir = profileDir(name)
 
-  // Shell integration is active — output for eval
   if (options.printEnv) {
-    process.stdout.write(`export CLAUDE_CONFIG_DIR=${dir}\n`)
-    process.stdout.write(`echo "${chalk.green(`✔ Now wearing cloak "${name}".`)}"\n`)
+    process.stdout.write(msg.printEnvExport(dir))
+    process.stdout.write(msg.printEnvEcho(name))
     return
   }
 
   // No shell integration — prompt user to set it up
-  console.log(chalk.yellow('\n⚠ Shell integration is required to switch accounts.\n'))
+  console.log('\n' + msg.switchRequired() + '\n')
 
   let choice = options.setupChoice
   if (choice === undefined) {
     const answer = await inquirer.prompt([{
       type: 'list',
       name: 'choice',
-      message: 'How would you like to proceed?',
+      message: msg.prompts.setupChoice,
       choices: [
-        { name: 'Set it up now (recommended)', value: 'auto' },
-        { name: 'Show manual instructions', value: 'manual' },
+        { name: msg.prompts.setupAuto, value: 'auto' },
+        { name: msg.prompts.setupManual, value: 'manual' },
       ],
     }])
     choice = answer.choice
   }
 
+  const rcFile = getRcFilePath()
+
   if (choice === 'auto') {
-    const rcFile = getRcFilePath()
     if (!isAlreadyInstalled(rcFile)) {
       installToRcFile(rcFile)
-      console.log(chalk.green(`✔ Shell integration added to ${rcFile}`))
+      console.log(msg.shellIntegrationAdded(rcFile))
     } else {
-      console.log(chalk.dim(`  Already installed in ${rcFile}`))
+      console.log(msg.alreadyInstalled(rcFile))
     }
-    console.log(chalk.dim(`\n  Run: `) + chalk.white(`source ${rcFile} && cloak switch ${name}\n`))
+    console.log(msg.setupRunCommand(rcFile, name))
   } else {
-    console.log(chalk.dim(`\n  Run: `) + chalk.white(`echo 'eval "$(cloak init)"' >> ${getRcFilePath()} && source ${getRcFilePath()} && cloak switch ${name}\n`))
+    console.log(msg.setupManualCommand(rcFile, name))
   }
 }

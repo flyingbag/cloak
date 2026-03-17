@@ -1,5 +1,5 @@
-import chalk from 'chalk'
 import { listProfileNames, getActiveProfile } from '../lib/paths.js'
+import * as msg from '../lib/messages.js'
 
 export function listAccounts() {
   const names = listProfileNames().sort()
@@ -11,17 +11,14 @@ export function listAccounts() {
   }))
 
   if (accounts.length === 0) {
-    console.log(chalk.dim('No cloaks in your wardrobe yet.'))
-    console.log(chalk.dim('Run: claude account create <name>'))
+    console.log(msg.noCloaksYet())
+    console.log(msg.suggestCreate())
     return accounts
   }
 
-  console.log(chalk.bold('\nClaude Code Accounts\n'))
+  console.log(msg.accountListHeader())
   accounts.forEach(({ name, active: isActive }) => {
-    const marker = isActive ? chalk.green('● ') : chalk.dim('○ ')
-    const label = isActive ? chalk.green.bold(name) : chalk.white(name)
-    const tag = isActive ? chalk.green(' (active)') : ''
-    console.log(`  ${marker}${label}${tag}`)
+    console.log(msg.accountListItem(name, isActive))
   })
   console.log()
 

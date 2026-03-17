@@ -37,7 +37,8 @@
 │       ├── paths.js         # Path constants and directory helpers
 │       ├── validate.js      # Account name validation
 │       ├── tip.js           # First-run shell integration tip
-│       └── setup.js         # Automatic shell integration setup
+│       ├── setup.js         # Automatic shell integration setup
+│       └── messages.js      # Centralized user-facing messages (i18n-ready)
 ├── tests/
 │   ├── validate.test.js
 │   ├── paths.test.js

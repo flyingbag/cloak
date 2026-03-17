@@ -1,31 +1,31 @@
 import { renameSync } from 'fs'
-import chalk from 'chalk'
 import { profileDir, profileExists, getActiveProfile } from '../lib/paths.js'
 import { validateAccountName } from '../lib/validate.js'
+import * as msg from '../lib/messages.js'
 
 export async function renameAccount(oldName, newName) {
   const oldValidation = validateAccountName(oldName)
   if (!oldValidation.valid) {
-    console.error(chalk.red(`✖ ${oldValidation.error}`))
+    console.error(msg.validationError(oldValidation.error))
     process.exit(1)
     return
   }
 
   const newValidation = validateAccountName(newName)
   if (!newValidation.valid) {
-    console.error(chalk.red(`✖ ${newValidation.error}`))
+    console.error(msg.validationError(newValidation.error))
     process.exit(1)
     return
   }
 
   if (!profileExists(oldName)) {
-    console.error(chalk.red(`✖ Account "${oldName}" not found.`))
+    console.error(msg.accountNotFound(oldName))
     process.exit(1)
     return
   }
 
   if (profileExists(newName)) {
-    console.error(chalk.red(`✖ Account "${newName}" is already in use.`))
+    console.error(msg.accountAlreadyInUse(newName))
     process.exit(1)
     return
   }
@@ -33,8 +33,8 @@ export async function renameAccount(oldName, newName) {
   renameSync(profileDir(oldName), profileDir(newName))
 
   if (getActiveProfile() === oldName) {
-    console.log(chalk.yellow(`⚠ Run \`claude account switch ${newName}\` to update your session.`))
+    console.log(msg.updateSessionAfterRename(newName))
   }
 
-  console.log(chalk.green(`✔ Cloak "${oldName}" renamed to "${newName}".`))
+  console.log(msg.cloakRenamed(oldName, newName))
 }

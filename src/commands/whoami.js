@@ -1,10 +1,10 @@
-import chalk from 'chalk'
 import { getActiveProfile } from '../lib/paths.js'
+import * as msg from '../lib/messages.js'
 
 export function whoami() {
   const active = getActiveProfile()
   if (!active) {
-    console.log(chalk.dim('No cloak. Using default Claude Code config.'))
+    console.log(msg.noCloak())
     return null
   }
   console.log(active)
