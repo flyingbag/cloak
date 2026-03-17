@@ -2,12 +2,12 @@ import chalk from 'chalk'
 
 // Icons — consistent across all messages
 const icon = {
-  success: chalk.green('✔'),
-  error: chalk.red('✖'),
-  warning: chalk.yellow('⚠'),
+  success: chalk.green('+'),
+  error: chalk.red('x'),
+  warning: chalk.yellow('!'),
   tip: chalk.yellow('*'),
-  active: chalk.green('●'),
-  inactive: chalk.dim('○'),
+  active: chalk.green('>'),
+  inactive: ' ',
 }
 
 // --- Success messages ---
