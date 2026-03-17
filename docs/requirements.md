@@ -361,6 +361,7 @@ When any other `cloak` command runs without shell integration, a non-blocking ti
 - The message goes to stderr (does not interfere with Claude Code's stdout)
 - Only shown on TTY
 - Shown on every `claude` invocation (not one-time), so the user always knows which identity they're using
+- The message is rendered as a box using box-drawing characters, matching the terminal width, visually stacking above Claude Code's own header
 
 ---
 

@@ -32,6 +32,7 @@
 │   │   ├── delete.js        # claude account delete / rm
 │   │   ├── whoami.js        # claude account whoami
 │   │   ├── rename.js        # claude account rename
+│   │   ├── banner.js        # cloak banner (active cloak box)
 │   │   └── init.js          # cloak init (shell integration)
 │   └── lib/
 │       ├── paths.js         # Path constants and directory helpers
@@ -48,6 +49,7 @@
 │   ├── switch.test.js
 │   ├── delete.test.js
 │   ├── rename.test.js
+│   ├── banner.test.js
 │   ├── init.test.js
 │   ├── tip.test.js
 │   └── setup.test.js
@@ -274,11 +276,7 @@ claude() {
     fi
   else
     if [ -n "$CLAUDE_CONFIG_DIR" ]; then
-      local _cloak_name
-      _cloak_name=$(command cloak whoami 2>/dev/null)
-      if [ -n "$_cloak_name" ]; then
-        echo "🔹 Wearing cloak \"$_cloak_name\"" >&2
-      fi
+      command cloak banner 2>/dev/null >&2
     fi
     command claude "$@"
   fi
@@ -347,6 +345,23 @@ export function installToRcFile(rcFilePath)
 // Returns: void
 // Does NOT install if isAlreadyInstalled() returns true
 ```
+
+#### `commands/banner.js`
+
+```
+Input: none
+Effects:
+  1. Read getActiveProfile()
+  2. If null → do nothing, exit silently
+  3. Render a box matching terminal width with the cloak name
+  4. Output to stdout (shell function redirects to stderr)
+Output format:
+  ╭──────────────────────────────────╮
+  │ 🔹 Wearing cloak "work"          │
+  ╰──────────────────────────────────╯
+```
+
+**Design:** the banner uses `process.stdout.columns` to match terminal width. Box-drawing characters (`╭╮│╰╯─`) create a visual that stacks naturally above Claude Code's own header.
 
 #### `commands/list.js`
 
@@ -594,8 +609,17 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 | I-06 | `claude()` delegates other commands | — | Contains `command claude "$@"` |
 | I-07 | Sets CLOAK_SHELL_INTEGRATION env var | — | Stdout contains `export CLOAK_SHELL_INTEGRATION=1` |
 | I-08 | `claude account switch` does NOT call `command claude` | — | The `account switch` branch does not contain `command claude` after eval |
-| I-09 | Passthrough shows active cloak name | — | Else branch contains `cloak whoami` before `command claude` |
-| I-10 | Cloak message goes to stderr | — | Else branch contains `>&2` on the echo line |
+| I-09 | Passthrough calls cloak banner when active | — | Else branch contains `command cloak banner` before `command claude` |
+| I-10 | Banner output goes to stderr | — | Else branch contains `>&2` on the banner line |
+
+#### `tests/banner.test.js` — Banner command
+
+| ID | Scenario | Precondition | Expected |
+|----|----------|-------------|----------|
+| B-01 | Renders box with cloak name | Active profile set | Output contains box characters and cloak name |
+| B-02 | No output when no cloak active | `CLAUDE_CONFIG_DIR` not set | Empty output |
+| B-03 | Box width matches terminal columns | `columns = 80` | Box lines are 80 chars wide |
+| B-04 | Contains wearing message | Active profile set | Output contains `Wearing cloak` |
 
 ---
 
