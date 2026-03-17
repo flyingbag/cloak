@@ -30,10 +30,11 @@ src/
     tip.js             — first-run shell integration tip
     setup.js           — automatic shell integration setup
     messages.js        — centralized user-facing messages (i18n-ready)
+    context-bar.js     — universal context bar (status indicator)
 tests/
     validate.test.js, paths.test.js, create.test.js, whoami.test.js,
     list.test.js, switch.test.js, delete.test.js, rename.test.js,
-    tip.test.js, init.test.js
+    setup.test.js, tip.test.js, context-bar.test.js, init.test.js
 docs/
     requirements.md    — use cases, business rules, references
     technical-spec.md  — architecture, contracts, test matrix
