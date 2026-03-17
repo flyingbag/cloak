@@ -10,7 +10,7 @@ Every developer wears a different cloak. One for work, one for personal projects
 
 Sessions, tokens, MCP servers, and settings fully preserved. Concurrent sessions across terminals. [181+ developers asked for this.](https://github.com/anthropics/claude-code/issues/18435)
 
-[![demo](https://asciinema.org/a/i9GNv5yYYF05jEfN.svg)](https://asciinema.org/a/i9GNv5yYYF05jEfN)
+![demo](cloak-demo.svg)
 
 ## Before / After
 
