@@ -132,6 +132,7 @@ export function ensureProfilesDir()        // Creates PROFILES_DIR if missing
 export function profileExists(name)        // → boolean (directory exists?)
 export function listProfileNames()         // → string[] (subdirectory names)
 export function getActiveProfile()         // → string | null (extracts name from CLAUDE_CONFIG_DIR)
+export function getAccountEmail(name)      // → string | null (reads oauthAccount.emailAddress from profile's .claude.json)
 ```
 
 **`getActiveProfile()` logic:**
@@ -484,6 +485,9 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 | P-09 | claudeAuthPath without CLAUDE_CONFIG_DIR | Env var not set | `~/.claude.json` |
 | P-10 | claudeAuthPath with CLAUDE_CONFIG_DIR | Env var set | `$CLAUDE_CONFIG_DIR/.claude.json` |
 | P-11 | ensureProfilesDir creates directory | Directory doesn't exist | Directory created |
+| P-12 | getAccountEmail reads email from profile | Profile with valid .claude.json | Email string |
+| P-13 | getAccountEmail returns null for missing file | Profile without .claude.json | `null` |
+| P-14 | getAccountEmail returns null for invalid JSON | Profile with corrupt .claude.json | `null` |
 
 #### `tests/create.test.js` — Create command
 
@@ -517,6 +521,8 @@ Each module follows the **Red → Green → Refactor** cycle. The test is writte
 | L-03 | Alphabetical order | Accounts created out of order | Sorted list |
 | L-04 | Marks active based on CLAUDE_CONFIG_DIR | Env var points to one account | Only that one marked |
 | L-05 | None marked as active | Env var not set | No active marker |
+| L-06 | Shows email for each account | Profiles with .claude.json | Email shown next to name |
+| L-07 | Gracefully handles missing email | Profile without .claude.json | Name shown without email |
 
 #### `tests/switch.test.js` — Switch command
 

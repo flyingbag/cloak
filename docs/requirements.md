@@ -239,6 +239,8 @@ When any other `cloak` command runs without shell integration, a non-blocking ti
 **Business rules:**
 - The "active" indicator is based on the current shell's `CLAUDE_CONFIG_DIR`, not a global file
 - Accounts are listed in alphabetical order
+- Each account shows the associated email address (read from `.claude.json` → `oauthAccount.emailAddress`)
+- If the email cannot be read (file missing or corrupt), the account is listed without email
 
 ---
 
