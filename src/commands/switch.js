@@ -30,7 +30,6 @@ export async function switchAccount(name, options = {}) {
 
   if (options.printEnv) {
     process.stdout.write(msg.printEnvExport(dir))
-    process.stdout.write(msg.printEnvEcho(name))
     return
   }
 

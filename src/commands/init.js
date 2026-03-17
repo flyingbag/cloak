@@ -39,6 +39,7 @@ export function getInitScript() {
     '    local exit_code=$?',
     '    if [ $exit_code -eq 0 ]; then',
     '      eval "$output"',
+    '      command cloak banner >&2',
     '      command claude "$@"',
     '    fi',
     '  else',
