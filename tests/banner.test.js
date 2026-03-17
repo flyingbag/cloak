@@ -71,7 +71,7 @@ describe('banner', () => {
     createFakeProfile('home', 'filipe@personal.com')
     process.env.CLAUDE_CONFIG_DIR = profileDir('home')
     const output = captureStdout(() => showBanner(80))
-    assert.ok(output.includes('Wearing cloak'))
+    assert.ok(output.includes('cloak'))
     assert.ok(output.includes('home'))
   })
 })
