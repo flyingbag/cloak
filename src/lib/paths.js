@@ -1,6 +1,6 @@
 import { homedir } from 'os'
 import { join, resolve, sep } from 'path'
-import { existsSync, mkdirSync, readdirSync } from 'fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs'
 
 function getHome() {
   return process.env.HOME || homedir()
@@ -66,4 +66,15 @@ export function getActiveProfile() {
 
   const name = resolved.slice(profilesResolved.length + 1).split(sep)[0]
   return name || null
+}
+
+export function getAccountEmail(name) {
+  try {
+    const authFile = profileAuthPath(name)
+    if (!existsSync(authFile)) return null
+    const data = JSON.parse(readFileSync(authFile, 'utf8'))
+    return data?.oauthAccount?.emailAddress || null
+  } catch {
+    return null
+  }
 }

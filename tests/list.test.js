@@ -59,6 +59,22 @@ describe('list', () => {
     const result = listAccounts()
     assert.ok(result.every(p => p.active === false))
   })
+
+  it('L-06: shows email for each account', () => {
+    const dir = profileDir('work')
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, '.claude.json'), JSON.stringify({
+      oauthAccount: { emailAddress: 'filipe@company.com' }
+    }))
+    const result = listAccounts()
+    assert.equal(result.find(p => p.name === 'work').email, 'filipe@company.com')
+  })
+
+  it('L-07: gracefully handles missing email', () => {
+    fs.mkdirSync(profileDir('bare'), { recursive: true })
+    const result = listAccounts()
+    assert.equal(result.find(p => p.name === 'bare').email, null)
+  })
 })
 
 fs.rmSync(TMP, { recursive: true, force: true })

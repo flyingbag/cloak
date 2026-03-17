@@ -20,6 +20,7 @@ const {
   profileExists,
   listProfileNames,
   getActiveProfile,
+  getAccountEmail,
   claudeAuthPath,
   claudeSettingsPath,
   ensureProfilesDir,
@@ -99,6 +100,28 @@ describe('paths', () => {
     assert.equal(fs.existsSync(PROFILES_DIR), false)
     ensureProfilesDir()
     assert.equal(fs.existsSync(PROFILES_DIR), true)
+  })
+
+  it('P-12: getAccountEmail reads email from profile', () => {
+    const dir = profileDir('work')
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, '.claude.json'), JSON.stringify({
+      oauthAccount: { emailAddress: 'filipe@company.com' }
+    }))
+    assert.equal(getAccountEmail('work'), 'filipe@company.com')
+  })
+
+  it('P-13: getAccountEmail returns null for missing file', () => {
+    const dir = profileDir('empty')
+    fs.mkdirSync(dir, { recursive: true })
+    assert.equal(getAccountEmail('empty'), null)
+  })
+
+  it('P-14: getAccountEmail returns null for invalid JSON', () => {
+    const dir = profileDir('corrupt')
+    fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(path.join(dir, '.claude.json'), 'not json')
+    assert.equal(getAccountEmail('corrupt'), null)
   })
 })
 

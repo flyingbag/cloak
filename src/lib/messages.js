@@ -98,11 +98,12 @@ export function accountListHeader() {
   return chalk.bold('\nYour Cloaks\n')
 }
 
-export function accountListItem(name, isActive) {
+export function accountListItem(name, isActive, email) {
   const marker = isActive ? icon.active : icon.inactive
   const label = isActive ? chalk.green.bold(name) : chalk.white(name)
   const tag = isActive ? chalk.green(' (active)') : ''
-  return `  ${marker} ${label}${tag}`
+  const emailTag = email ? chalk.dim(` — ${email}`) : ''
+  return `  ${marker} ${label}${tag}${emailTag}`
 }
 
 export function alreadyInstalled(rcFile) {

@@ -1,4 +1,4 @@
-import { listProfileNames, getActiveProfile } from '../lib/paths.js'
+import { listProfileNames, getActiveProfile, getAccountEmail } from '../lib/paths.js'
 import * as msg from '../lib/messages.js'
 
 export function listAccounts() {
@@ -8,6 +8,7 @@ export function listAccounts() {
   const accounts = names.map(name => ({
     name,
     active: name === active,
+    email: getAccountEmail(name),
   }))
 
   if (accounts.length === 0) {
@@ -17,8 +18,8 @@ export function listAccounts() {
   }
 
   console.log(msg.accountListHeader())
-  accounts.forEach(({ name, active: isActive }) => {
-    console.log(msg.accountListItem(name, isActive))
+  accounts.forEach(({ name, active: isActive, email }) => {
+    console.log(msg.accountListItem(name, isActive, email))
   })
   console.log()
 
