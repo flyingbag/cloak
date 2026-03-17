@@ -14,14 +14,15 @@ export async function switchAccount(name, options = {}) {
 
   if (!profileExists(name)) {
     console.error(msg.accountNotFound(name))
-    console.log(msg.suggestCreate(name))
+    console.error(msg.suggestCreate(name))
     process.exit(1)
     return
   }
 
   const active = getActiveProfile()
   if (active === name) {
-    console.log(msg.alreadyWearing(name))
+    // Always stderr — stdout is reserved for eval-able output when --print-env
+    console.error(msg.alreadyWearing(name))
     return
   }
 

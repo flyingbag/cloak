@@ -77,11 +77,12 @@ describe('switch', () => {
     assert.ok(stderr.includes("Couldn't find"))
   })
 
-  it('S-03: warns when already on the same account', async () => {
+  it('S-03: warns when already on the same account with no stdout', async () => {
     fs.mkdirSync(profileDir('work'), { recursive: true })
     process.env.CLAUDE_CONFIG_DIR = profileDir('work')
     const output = await captureStdoutAsync(() => switchAccount('work', { printEnv: true }))
-    assert.ok(!output.includes('export CLAUDE_CONFIG_DIR='))
+    // stdout must be completely empty — any output would be eval'd by the shell function
+    assert.equal(output, '', 'stdout must be empty when already wearing cloak')
   })
 
   it('S-04: auto setup installs to rc file when user chooses auto', async () => {
