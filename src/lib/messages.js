@@ -5,7 +5,7 @@ const icon = {
   success: chalk.green('✔'),
   error: chalk.red('✖'),
   warning: chalk.yellow('⚠'),
-  tip: '💡',
+  tip: chalk.yellow('*'),
   active: chalk.green('●'),
   inactive: chalk.dim('○'),
 }
@@ -131,7 +131,7 @@ export function shellIntegrationTip(rcFile) {
 // --- Active cloak indicator (shown on claude launch) ---
 
 export function wearingCloak(name) {
-  return `🔹 Wearing cloak "${name}"`
+  return `Wearing cloak "${name}"`
 }
 
 // --- Print-env (stdout, no chalk — evaluated by shell) ---
