@@ -77,7 +77,7 @@ describe('delete', () => {
       return exitRun()
     })
     const stderr = await capture()
-    assert.ok(stderr.includes("Can't discard a cloak you're wearing"))
+    assert.ok(stderr.includes("currently wearing"))
   })
 
   it('D-04: exits with code 1 for missing account', async () => {
@@ -92,7 +92,7 @@ describe('delete', () => {
       return exitRun()
     })
     const stderr = await capture()
-    assert.ok(stderr.includes('not found'))
+    assert.ok(stderr.includes("Couldn't find"))
   })
 
   it('D-05: removes entire directory', async () => {

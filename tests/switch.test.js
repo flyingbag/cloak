@@ -74,7 +74,7 @@ describe('switch', () => {
       return exitRun()
     })
     const stderr = await capture()
-    assert.ok(stderr.includes('not found'))
+    assert.ok(stderr.includes("Couldn't find"))
   })
 
   it('S-03: warns when already on the same account', async () => {

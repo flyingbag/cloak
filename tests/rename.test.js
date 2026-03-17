@@ -81,7 +81,7 @@ describe('rename', () => {
       return exitRun()
     })
     const stderr = await capture()
-    assert.ok(stderr.includes('already in use'))
+    assert.ok(stderr.includes('already exists'))
   })
 
   it('R-04: exits with code 1 when source does not exist', async () => {

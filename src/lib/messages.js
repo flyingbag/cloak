@@ -5,7 +5,6 @@ const icon = {
   success: chalk.green('✔'),
   error: chalk.red('✖'),
   warning: chalk.yellow('⚠'),
-  info: chalk.blue('ℹ'),
   tip: '💡',
   active: chalk.green('●'),
   inactive: chalk.dim('○'),
@@ -14,7 +13,7 @@ const icon = {
 // --- Success messages ---
 
 export function cloakCreated(name) {
-  return `${icon.success} Cloak ${chalk.bold(`"${name}"`)} created.`
+  return `${icon.success} Cloak ${chalk.bold(`"${name}"`)} created. Ready to wear!`
 }
 
 export function cloakSwitched(name) {
@@ -26,11 +25,11 @@ export function cloakDiscarded(name) {
 }
 
 export function cloakRenamed(oldName, newName) {
-  return `${icon.success} Cloak ${chalk.bold(`"${oldName}"`)} renamed to ${chalk.bold(`"${newName}"`)}.`
+  return `${icon.success} Cloak ${chalk.bold(`"${oldName}"`)} is now ${chalk.bold(`"${newName}"`)}.`
 }
 
 export function shellIntegrationAdded(rcFile) {
-  return `${icon.success} Shell integration added to ${chalk.bold(rcFile)}`
+  return `${icon.success} All set! Shell integration added to ${chalk.bold(rcFile)}.`
 }
 
 // --- Error messages ---
@@ -40,7 +39,7 @@ export function validationError(error) {
 }
 
 export function accountNotFound(name) {
-  return `${icon.error} Account ${chalk.bold(`"${name}"`)} not found.`
+  return `${icon.error} Couldn't find a cloak named ${chalk.bold(`"${name}"`)}.`
 }
 
 export function noActiveSession() {
@@ -48,35 +47,35 @@ export function noActiveSession() {
 }
 
 export function cannotDiscardActive() {
-  return `${icon.error} Can't discard a cloak you're wearing.`
+  return `${icon.error} You're currently wearing this cloak.`
 }
 
 export function accountAlreadyInUse(name) {
-  return `${icon.error} Account ${chalk.bold(`"${name}"`)} is already in use.`
+  return `${icon.error} A cloak named ${chalk.bold(`"${name}"`)} already exists.`
 }
 
 // --- Warning messages ---
 
 export function alreadyWearing(name) {
-  return `${icon.warning} Already wearing cloak ${chalk.bold(`"${name}"`)}.`
+  return `${icon.warning} You're already wearing cloak ${chalk.bold(`"${name}"`)}.`
 }
 
 export function switchRequired() {
-  return `${icon.warning} Shell integration is required to switch accounts.`
+  return `${icon.warning} Quick setup needed to enable switching.`
 }
 
 export function updateSessionAfterRename(newName) {
-  return `${icon.warning} Run ${chalk.white(`claude account switch ${newName}`)} to update your session.`
+  return `${icon.warning} To keep using this cloak, run: ${chalk.white(`claude account switch ${newName}`)}`
 }
 
 // --- Info / hints ---
 
 export function suggestCreate(name) {
-  return chalk.dim(`  Run: claude account create ${name || '<name>'}`)
+  return chalk.dim(`  Try: claude account create ${name || '<name>'}`)
 }
 
 export function suggestSwitchFirst() {
-  return chalk.dim('  Switch to another account first.')
+  return chalk.dim('  Switch to a different cloak first, then try again.')
 }
 
 export function loginFirst() {
@@ -84,11 +83,11 @@ export function loginFirst() {
 }
 
 export function cancelled() {
-  return chalk.dim('Cancelled.')
+  return chalk.dim('No changes made.')
 }
 
 export function noCloak() {
-  return chalk.dim('No cloak. Using default Claude Code config.')
+  return chalk.dim('No cloak active — using default Claude Code config.')
 }
 
 export function noCloaksYet() {
@@ -96,7 +95,7 @@ export function noCloaksYet() {
 }
 
 export function accountListHeader() {
-  return chalk.bold('\nClaude Code Accounts\n')
+  return chalk.bold('\nYour Cloaks\n')
 }
 
 export function accountListItem(name, isActive) {
@@ -107,13 +106,13 @@ export function accountListItem(name, isActive) {
 }
 
 export function alreadyInstalled(rcFile) {
-  return chalk.dim(`  Already installed in ${rcFile}`)
+  return chalk.dim(`  Already set up in ${rcFile} — you're good!`)
 }
 
 // --- Setup instructions ---
 
 export function setupRunCommand(rcFile, name) {
-  return chalk.dim('\n  Run: ') + chalk.white(`source ${rcFile} && cloak switch ${name}\n`)
+  return chalk.dim('\n  Almost there! Run: ') + chalk.white(`source ${rcFile} && cloak switch ${name}\n`)
 }
 
 export function setupManualCommand(rcFile, name) {
@@ -123,7 +122,7 @@ export function setupManualCommand(rcFile, name) {
 // --- Tip ---
 
 export function shellIntegrationTip() {
-  return chalk.dim('\n💡 Tip: Run this once to enable "claude -a" and "claude account":\n') +
+  return chalk.dim(`\n${icon.tip} Tip: Enable "claude -a" and "claude account" with:\n`) +
     chalk.dim('   echo \'eval "$(cloak init)"\' >> ~/.bashrc && source ~/.bashrc\n\n')
 }
 
@@ -140,10 +139,10 @@ export function printEnvEcho(name) {
 // --- Prompt messages ---
 
 export const prompts = {
-  accountName: 'Account name:',
-  overwriteConfirm: (name) => `Cloak "${name}" already exists. Overwrite?`,
-  deleteConfirm: (name) => `Delete cloak "${name}"?`,
+  accountName: 'Name your cloak:',
+  overwriteConfirm: (name) => `Cloak "${name}" already exists. Replace it?`,
+  deleteConfirm: (name) => `Remove cloak "${name}"? This can't be undone.`,
   setupChoice: 'How would you like to proceed?',
   setupAuto: 'Set it up now (recommended)',
-  setupManual: 'Show manual instructions',
+  setupManual: 'Show me the manual steps',
 }
