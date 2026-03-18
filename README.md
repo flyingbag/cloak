@@ -63,6 +63,8 @@ claude -a home       # in another terminal, at the same time
 | `cloak whoami` | Which cloak are you wearing? |
 | `cloak delete <name>` | Discard a cloak |
 | `cloak rename <old> <new>` | Rename a cloak |
+| `cloak bind <name>` | Bind this directory to a cloak |
+| `cloak unbind` | Remove directory binding |
 
 With shell integration (`eval "$(cloak init)"`):
 
@@ -84,6 +86,20 @@ claude -a home
 ```
 
 Each account is a completely isolated directory. No file overlap, no token conflicts.
+
+## Auto-switch by directory
+
+Bind a cloak to a project directory. Claude automatically uses the right account.
+
+```bash
+cd ~/projects/company
+cloak bind work
+
+cd ~/projects/personal
+cloak bind home
+```
+
+From now on, `claude` in those directories uses the bound account — no manual switch needed.
 
 ## Context bar
 

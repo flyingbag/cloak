@@ -24,6 +24,8 @@ src/
     delete.js          — cloak delete / rm
     whoami.js          — cloak whoami
     rename.js          — cloak rename
+    bind.js            — cloak bind (auto-switch by directory)
+    unbind.js          — cloak unbind
   lib/
     paths.js           — path constants, directory helpers, active account resolution
     validate.js        — account name validation
@@ -34,7 +36,7 @@ src/
 tests/
     validate.test.js, paths.test.js, create.test.js, whoami.test.js,
     list.test.js, switch.test.js, delete.test.js, rename.test.js,
-    setup.test.js, tip.test.js, context-bar.test.js, init.test.js
+    setup.test.js, tip.test.js, context-bar.test.js, bind.test.js, init.test.js
 docs/
     requirements.md    — use cases, business rules, references
     technical-spec.md  — architecture, contracts, test matrix
@@ -63,6 +65,8 @@ cloak list                         — see all cloaks (alias: ls)
 cloak whoami                       — which cloak are you wearing?
 cloak delete <name>                — discard a cloak (alias: rm)
 cloak rename <old> <new>           — rename a cloak
+cloak bind <name>                  — bind current directory to a cloak
+cloak unbind                       — remove directory binding
 cloak init                         — output shell integration code
 ```
 

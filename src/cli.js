@@ -37,6 +37,10 @@ Quick start:
   cloak switch work              Switch to a cloak
   cloak list                     See all your cloaks
 
+Auto-switch by directory:
+  cloak bind work                Bind current directory to a cloak
+  cd ~/project && claude         Auto-uses the bound cloak
+
 Shell integration (recommended):
   eval "$(cloak init)"           Add to .bashrc/.zshrc for:
   claude -a work                 Switch and launch Claude in one step
