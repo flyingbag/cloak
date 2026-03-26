@@ -9,7 +9,7 @@
 
 Every developer wears a different cloak. One for work, one for personal projects, one for that freelance gig. **Cloak** lets you dress your Claude Code in the right identity — and switch between them without breaking a sweat.
 
-Sessions, tokens, MCP servers, and settings fully preserved. Concurrent sessions across terminals. [181+ developers asked for this.](https://github.com/anthropics/claude-code/issues/18435)
+No file swapping. No token juggling. Each account is a fully isolated directory — safe for concurrent sessions across terminals. [195+ developers asked for this.](https://github.com/anthropics/claude-code/issues/18435)
 
 ![demo](cloak-demo.svg)
 
@@ -113,6 +113,15 @@ Your Cloaks
   > work (active) — filipe@company.com
     home — filipe@personal.com
 ```
+
+## Why Cloak
+
+- **No file swapping** — each account is its own directory, not a copy of shared files
+- **Concurrent sessions** — different terminals, different accounts, at the same time
+- **Auto-switch by directory** — bind a project to a cloak, forget about it
+- **One command** — `claude -a work` switches and launches in one step
+- **Nothing is lost** — tokens, MCP servers, settings, all preserved per account
+- **Secure** — credentials stored with restrictive permissions (0o600), never transmitted
 
 ## How it works
 
