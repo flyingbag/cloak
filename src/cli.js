@@ -16,6 +16,9 @@ import { renameAccount } from './commands/rename.js'
 import { bindAccount } from './commands/bind.js'
 import { unbindAccount } from './commands/unbind.js'
 import { initShell } from './commands/init.js'
+import { syncKeychain } from './commands/sync.js'
+import { resumeSession } from './commands/resume.js'
+import { showSessions } from './commands/sessions.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(join(__dirname, '../package.json'), 'utf8'))
@@ -126,5 +129,30 @@ program
   .command('init')
   .description('Output shell integration code')
   .action(initShell)
+
+program
+  .command('sync [name]')
+  .description('Sync macOS Keychain credentials into a cloak profile')
+  .action((name) => {
+    renderContextBar('sync')
+    return syncKeychain(name)
+  })
+
+program
+  .command('resume <session-id>')
+  .description('Resume a previous Claude session in the active cloak')
+  .option('-p, --profile <name>', 'Profile to use (defaults to active cloak)')
+  .action((sessionId, opts) => {
+    if (!_printEnv) renderContextBar('resume')
+    return resumeSession(sessionId, { printEnv: _printEnv, profile: opts.profile })
+  })
+
+program
+  .command('sessions [name]')
+  .description('List sessions for a cloak profile')
+  .action((name) => {
+    renderContextBar('sessions')
+    return showSessions(name)
+  })
 
 program.parse(argv)

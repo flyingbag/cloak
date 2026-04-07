@@ -148,10 +148,75 @@ export function wearingCloak(name) {
   return `Wearing cloak "${name}"`
 }
 
+// --- Keychain sync ---
+
+export function keychainMacOnly() {
+  return `${icon.error} Keychain sync is only available on macOS.`
+}
+
+export function keychainEntryNotFound(name) {
+  return `${icon.error} No Keychain entry found for cloak ${chalk.bold(`"${name}"`)}.` +
+    `\n${chalk.dim(`  Create one with: security add-generic-password -s "Claude Code-credentials-${name}" -a "$USER" -w '<json>'`)}`
+}
+
+export function keychainInvalidJson(name) {
+  return `${icon.error} Keychain entry for ${chalk.bold(`"${name}"`)} is not valid JSON.`
+}
+
+export function keychainSynced(name) {
+  return `${icon.success} Keychain credentials synced to cloak ${chalk.bold(`"${name}"`)}.`
+}
+
+// --- Session resume ---
+
+export function noActiveProfile() {
+  return `${icon.error} No active cloak. Switch to a cloak first, or pass a profile name.`
+}
+
+export function invalidSessionId(sessionId) {
+  return `${icon.error} Invalid session ID ${chalk.bold(String(sessionId))}.` +
+    `\n${chalk.dim('  Use: cloak sessions to list available sessions.')}`
+}
+
+export function sessionNotFound(sessionId, profileName) {
+  return `${icon.error} Session ${chalk.bold(sessionId)} not found in cloak ${chalk.bold(`"${profileName}"`)}.` +
+    `\n${chalk.dim('  Use: cloak sessions to list available sessions.')}`
+}
+
+export function resumingSession(sessionId, profileName) {
+  return `${icon.success} Resuming session ${chalk.bold(sessionId)} with cloak ${chalk.bold(`"${profileName}"`)}.`
+}
+
+export function resumeManualCommand(dir, sessionId) {
+  return `${icon.warning} Shell integration required to resume sessions.\n` +
+    chalk.dim('\n  Run: ') +
+    chalk.white(`CLAUDE_CONFIG_DIR="${dir}" claude --resume "${sessionId}"\n`)
+}
+
+// --- Session list ---
+
+export function noSessionsFound(profileName) {
+  return chalk.dim(`No sessions found for cloak "${profileName}".`)
+}
+
+export function sessionListHeader(profileName) {
+  return chalk.bold(`\nSessions for "${profileName}"\n`)
+}
+
+export function sessionListItem({ sessionId, project, mtime }) {
+  const date = mtime ? chalk.dim(new Date(mtime).toLocaleString()) : chalk.dim('unknown date')
+  const proj = chalk.dim(`[${decodeURIComponent(project)}]`)
+  return `  ${chalk.white(sessionId)}  ${proj}  ${date}`
+}
+
 // --- Print-env (stdout, no chalk — evaluated by shell) ---
 
+// C-1: single-quote the path so shell metacharacters in HOME cannot break out
+// of the assignment context when the caller evals this string.
+// Embedded single quotes are escaped as: '  →  '\''
 export function printEnvExport(dir) {
-  return `export CLAUDE_CONFIG_DIR="${dir}"\n`
+  const escaped = dir.replace(/'/g, "'\\''")
+  return `export CLAUDE_CONFIG_DIR='${escaped}'\n`
 }
 
 export function printEnvEcho(name) {

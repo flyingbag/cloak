@@ -38,6 +38,10 @@ export function profileSettingsPath(name) {
   return join(PROFILES_DIR, name, 'settings.json')
 }
 
+export function profileCredentialsPath(name) {
+  return join(PROFILES_DIR, name, '.credentials.json')
+}
+
 export function ensureProfilesDir() {
   if (!existsSync(PROFILES_DIR)) {
     mkdirSync(PROFILES_DIR, { recursive: true, mode: 0o700 })

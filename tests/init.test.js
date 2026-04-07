@@ -135,6 +135,30 @@ describe('init', () => {
     assert.ok(cloakFileIdx > -1, 'else branch reads .cloak file')
   })
 
+  it('I-11: cloak() intercepts resume with eval and then calls claude --resume', () => {
+    const output = getInitScript()
+    const func = extractFunction(output, 'cloak')
+    assert.ok(func.includes('"resume"'), 'cloak() handles resume')
+    assert.ok(func.includes('--print-env'), 'cloak() passes --print-env to cloak resume')
+    assert.ok(func.includes('eval'), 'cloak() evals the output')
+    assert.ok(func.includes('command claude --resume'), 'cloak() calls claude --resume')
+  })
+
+  it('I-12: cloak() resume branch calls context-bar before claude --resume', () => {
+    const output = getInitScript()
+    const func = extractFunction(output, 'cloak')
+    const lines = func.split('\n')
+
+    const resumeIdx = lines.findIndex(l => l.includes('"resume"'))
+    assert.ok(resumeIdx > -1, 'resume branch exists')
+
+    const afterResume = lines.slice(resumeIdx)
+    const ctxIdx = afterResume.findIndex(l => l.includes('context-bar resume'))
+    const claudeIdx = afterResume.findIndex(l => l.includes('command claude --resume'))
+    assert.ok(ctxIdx > -1, 'context-bar resume called')
+    assert.ok(claudeIdx > ctxIdx, 'command claude --resume comes after context-bar')
+  })
+
   it('I-14: .cloak auto-switch happens before context-bar', () => {
     const output = getInitScript()
     const func = extractFunction(output, 'claude')
