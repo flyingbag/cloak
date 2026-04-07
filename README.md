@@ -65,6 +65,9 @@ claude -a home       # in another terminal, at the same time
 | `cloak rename <old> <new>` | Rename a cloak |
 | `cloak bind <name>` | Bind this directory to a cloak |
 | `cloak unbind` | Remove directory binding |
+| `cloak sync [name]` | Sync credentials from macOS Keychain into a profile |
+| `cloak sessions [name]` | List sessions for a profile, newest first |
+| `cloak resume <session-id>` | Resume a previous Claude session |
 
 With shell integration (`eval "$(cloak init)"`):
 
@@ -72,6 +75,7 @@ With shell integration (`eval "$(cloak init)"`):
 |---------|-------------|
 | `claude -a <name>` | Switch and launch Claude |
 | `claude account <cmd>` | All cloak commands via claude |
+| `cloak resume <session-id>` | Set identity + launch `claude --resume` in one step |
 
 ## Concurrent sessions
 
@@ -100,6 +104,38 @@ cloak bind home
 ```
 
 From now on, `claude` in those directories uses the bound account — no manual switch needed.
+
+## macOS Keychain sync
+
+On macOS, Claude Code stores OAuth tokens in the Keychain. `cloak sync` reads them from there and writes them into the active profile — so you can keep using the Keychain as your source of truth without manual file copying.
+
+```bash
+# First time: store the credential JSON in the Keychain
+security add-generic-password \
+  -s "Claude Code-credentials-work" \
+  -a "$USER" \
+  -w "$(cat ~/.claude/.credentials.json)"
+
+# On every subsequent run, refresh the profile from the Keychain
+cloak sync work
+```
+
+Each profile has its own Keychain slot: `Claude Code-credentials-<name>`.
+
+## Session resume
+
+Pick up any previous conversation where you left off.
+
+```bash
+# List sessions for the active profile
+cloak sessions
+
+# Resume one (shell integration handles CLAUDE_CONFIG_DIR + claude --resume)
+cloak resume <session-id>
+
+# Resume a session from a specific profile
+cloak resume <session-id> --profile work
+```
 
 ## Context bar
 
@@ -132,8 +168,12 @@ Cloak uses Claude Code's official [`CLAUDE_CONFIG_DIR`](https://code.claude.com/
 └── profiles/
     ├── work/                # complete, isolated config
     │   ├── .claude.json
+    │   ├── .credentials.json   # synced from Keychain via cloak sync
     │   ├── settings.json
-    │   └── ...
+    │   └── projects/           # session history per project
+    │       └── -myproject/
+    │           ├── sessions-index.json
+    │           └── <session-id>.jsonl
     └── home/
         ├── .claude.json
         └── ...
@@ -165,6 +205,8 @@ No, as long as each terminal uses a different account. Each has its own director
 <summary><strong>Is my auth token safe?</strong></summary>
 
 Cloak never transmits, logs, or modifies your tokens. It only copies files during `cloak create` and changes an environment variable during `cloak switch`. All data stays local. Credential files are created with restrictive permissions (0o600).
+
+`cloak sync` reads from your local macOS Keychain only — no network calls are made. The token is written to the profile directory with `0o600` permissions atomically (no race window between write and chmod).
 </details>
 
 <details>
@@ -183,6 +225,7 @@ IDE extensions may not respect `CLAUDE_CONFIG_DIR` ([known limitation](https://g
 
 - Node.js >= 18
 - bash or zsh (for shell integration)
+- macOS (for `cloak sync` — Keychain integration is macOS-only)
 
 ## Contributing
 
